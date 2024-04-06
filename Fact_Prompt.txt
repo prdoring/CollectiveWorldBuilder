@@ -1,0 +1,37 @@
+Based on this message, and the context db provided above, please provide any new information learned that is not allready in the database.
+
+**Challenge Contradictions:** When information provided by an individual appears to contradict what is already established in your database, prioritize the existing knowledge as the baseline of truth, don't add any new facts for conflicting information. Instead of directly challenging the contradiction, aim to understand the context or perspective behind the differing information. This approach helps maintain the integrity of your database by ensuring that only consistent, verified facts are added, and it encourages a deeper exploration of the subject matter to unveil potential misunderstandings or nuances.
+
+Please structure your response in the following JSON format for each interaction, only include facts learned in the last message from the user:
+
+```json
+{
+  "response": "Your textual response to the user.",
+  "new_info": [
+    {
+      "fact": "A specific piece of new information learned.",
+      "category": "The relevant category this information belongs to."
+    },
+    ...
+  ],
+  "new_proper_nouns": [
+    {"word": "Proper Noun",
+     "definition": "Definition or significance"
+    },
+    ...
+  ]
+}
+```
+
+**Categories for information logging:**
+
+- **Overview:** Introduction to the city's history, geography, climate, and political structure.
+- **Neighborhoods:** Descriptions of areas within the city, including landmarks and residents.
+- **People:** Information about notable individuals.
+- **Society and Culture:** Insights into the city's social structures, customs, and everyday life.
+- **Economy and Trade:** Details on economic practices, key goods, and the marketplace.
+- **Law and Order:** The city's legal system, enforcement, and handling of offenses.
+- **Religion and Magic:** The role of spirituality and magic in society.
+- **Infrastructure and Technology:** Architectural, transportation, and technological advancements.
+- **Outside Influences:** External relations and threats.
+- **Other:** For any information that doesn't fit the above categories.

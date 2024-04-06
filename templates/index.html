@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: white;
+        }
+        .container {
+            display: flex;
+            height: 90vh;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            padding-top: 2%;
+        }
+        .conversations, .chat {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .conversations {
+            background-color: #242424;
+            width: 50%;
+            border-radius: 10px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            z-index:0;
+        }
+        .chat {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #181818;
+            max-width: 80%;
+            border-radius: 10px;
+            margin-left:-10px;
+            z-index: 1;
+        }
+
+        .chatTitle {
+            font-size: 1.5em;
+            margin: -20px;
+            z-index: 3;
+            color: #ffffff; /* White text color */
+            background-color: #333333; /* Dark background color */
+            padding: 10px; /* Add padding for better appearance */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        #messages {
+            list-style-type: none;
+            padding: 0;
+            overflow-y: auto;
+            margin-top:20px;
+            margin-bottom: 0;
+            flex-grow: 1;
+        }
+        .message-input {
+            display: flex;
+            margin-top: auto;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .message-input input[type="text"] {
+            flex-grow: 1;
+            margin-right: 10px;
+            background-color: #444;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
+        .btn.btn-primary {
+            border: none;
+            background-color: #007bff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease;
+        }
+        .btn.btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .conversations ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .conversations li {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #333;
+            margin-bottom: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        .conversations li:hover, .conversations li.active {
+            background-color: #007bff;
+            transform: translateX(5px);
+        }
+        .message-bubble {
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            opacity: 0;
+            transform: scale(0.5);
+            animation: popIn 0.5s forwards;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .user-message {
+            background-color: #007bff;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .server-message {
+            background-color: #f1f0f0;
+            color: #333;
+            border-bottom-left-radius: 0;
+        }
+        .message-wrapper {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        #messages {
+            padding: 10px;
+        }
+
+        /* New Conversation Form Styles */
+        #newConversationForm {
+            align-items: center;
+            margin-bottom: 20px; /* Add some space between the form and the conversation list */
+            margin-top: 60px;
+        }
+
+        #newConversationForm input[type="text"] {
+            flex-grow: 1;
+            margin: 3px;
+            margin-bottom: 0px;
+            background-color: #333;
+            border: 1px solid #444;
+            width: 100%;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        #newConversationForm input[type="text"]:focus {
+            background-color: #444; /* Slightly lighter on focus */
+            outline: none; /* Remove the default focus outline */
+            width:100%;
+            border-color: #555;
+        }
+
+        #newConversationForm button {
+            margin: 3px;
+            margin-top: 0px;
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width:100%;
+        }
+
+        #newConversationForm button:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+        }
+
+        #newConversationForm button:disabled {
+            background-color: #555; /* Grayed out when disabled */
+            box-shadow: none;
+        }
+
+        .conversations.collapsed {
+            width: 15px;
+            overflow: hidden;
+            transition: width 0.3s ease;
+        }
+
+        .hamburger-menu {
+            margin-top: -10px;
+            margin-left: -10px;
+        }
+
+        /* Adjust container width when conversations section is collapsed */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .conversations {
+                width: 100%; /* Take the full width */
+                max-width: none; /* Remove max-width restriction */
+                height: auto;
+                min-height: 80%;
+                padding:12px;
+                transition: 0.3s ease; /* Disable transition for height */
+            }
+            .conversations.collapsed {
+                height: 60px;
+                min-height: 0;
+                width: 100%;
+                overflow: hidden;
+                transition: 0.3s ease;
+            }
+            .chat {
+                max-width: 100%; /* Adjust chat width when conversations section is collapsed */
+                margin-left:0;
+                margin-top:-5px;
+            }
+
+            .hamburger-menu {
+                margin-top: -10px;
+                text-align: center;
+            }
+        }
+
+
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Custom scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px; /* Width of the scrollbar */
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: transparent; /* Color of the track */
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #888; /* Color of the handle */
+            border-radius: 4px; /* Rounded corners */
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; /* Color of the handle on hover */
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="conversations">
+        <div class="hamburger-menu">
+            ☰ 
+        </div>
+        <hr/>
+        <ul id="conversationList">
+            <!-- Conversations will be listed here -->
+        </ul>
+        <hr/>
+        <form id="newConversationForm">
+            <input type="text" id="newConversationName" placeholder="New Character" required>
+            <br/>
+            <button type="submit">Create</button>
+        </form>
+    </div>
+    <div class="chat">
+        <div class="chatTitle" id="chatTitle"></div>
+        <ul id="messages"></ul>
+        <div class="message-input">
+            <input type="text" id="messageInput" autocomplete="off" placeholder="Type a message..." disabled>
+            <button class="btn btn-primary" onclick="sendMessage()" disabled>Send</button>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+var socket = io();
+
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+var currentConversationId = null;
+
+document.getElementById('newConversationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = document.getElementById('newConversationName').value.trim();
+    if (name) {
+        socket.emit('create_conversation', {name: name});
+        document.getElementById('newConversationName').value = ''; // Clear input
+    }
+});
+
+document.getElementById('newConversationName').addEventListener('input', function() {
+    // Get the input field and button
+    var input = document.getElementById('newConversationName');
+    var button = document.querySelector('#newConversationForm button');
+
+    // Disable the button if the input is empty, enable it otherwise
+    button.disabled = !input.value.trim();
+});
+
+// Initially disable the button since the input is empty on load
+document.querySelector('#newConversationForm button').disabled = true;
+
+
+socket.on('conversation_created_all', function(data) {
+    var conversationList = document.getElementById('conversationList');
+    var newConversation = document.createElement('li');
+    newConversation.textContent = data.name;
+    newConversation.setAttribute('onclick', `joinConversation('${data.name}')`);
+    newConversation.id = data.name;
+    conversationList.appendChild(newConversation);
+});
+
+socket.on('conversation_created', function(data) {
+    joinConversation(data.name); // Auto-select the newly created conversation
+});
+
+
+function joinConversation(conversationId) {
+    if (currentConversationId) {
+        socket.emit('leave_conversation', {conversation_id: currentConversationId});
+    }
+    document.querySelectorAll('.conversations li').forEach(li => {
+        li.classList.remove('active');
+    });
+    var selectedConversation = document.getElementById(conversationId);
+    if (selectedConversation) {
+        selectedConversation.classList.add('active');
+    }
+    currentConversationId = conversationId;
+    socket.emit('join_conversation', {conversation_id: conversationId});
+    document.getElementById('messages').innerHTML = ''; // Clear current messages
+    document.getElementById('messageInput').disabled = false;
+    document.querySelector('.btn.btn-primary').disabled = false;
+    document.getElementById('chatTitle').innerHTML = conversationId
+    document.querySelector('.conversations').classList.toggle('collapsed');
+}
+
+
+function sendMessage() {
+    var message = document.getElementById('messageInput').value.trim();
+    if (!message) return;
+    socket.emit('send_message', {message: message, conversation_id: currentConversationId});
+    document.getElementById('messageInput').value = '';
+}
+
+
+socket.on('connect', function() {
+    // No need to do anything here for now, the server will automatically send existing conversations
+});
+
+socket.on('existing_conversations', function(conversations) {
+    var conversationList = document.getElementById('conversationList');
+    conversationList.innerHTML = ''; // Clear the list before adding
+    conversations.forEach(function(conversation) {
+        var newConversation = document.createElement('li');
+        newConversation.textContent = conversation.name;
+        newConversation.setAttribute('onclick', `joinConversation('${conversation.name}')`);
+        newConversation.id = conversation.name;
+        conversationList.appendChild(newConversation);
+    });
+});
+
+
+socket.on('conversation_history', function(data) {
+    var messages = document.getElementById('messages');
+    messages.innerHTML = ''; // Clear existing messages
+    data.history.forEach(function(message) {
+        displayMessage(message); // Pass the whole message object
+    });
+});
+
+socket.on('broadcast_message', function(data) {
+    if (data.conversation_id === currentConversationId) {
+        displayMessage(data.message); // Pass the whole message object
+    }
+});
+
+function displayMessage(messageData, senderOverride) {
+    var messages = document.getElementById('messages');
+    var wrapper = document.createElement('div');
+    wrapper.classList.add('message-wrapper');
+
+    var newMessage = document.createElement('div');
+    // Adjust this line to use messageData.text
+    newMessage.textContent = messageData.text || messageData; // Fallback to messageData if .text is not available
+    newMessage.classList.add('message-bubble');
+    // Use senderOverride if provided, else fall back to messageData.sender
+    var sender = senderOverride || messageData.sender;
+    if (sender === 'user') {
+        newMessage.classList.add('user-message');
+    } else {
+        newMessage.classList.add('server-message');
+    }
+
+    wrapper.appendChild(newMessage);
+    messages.appendChild(wrapper);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+
+// You might also want a function to handle leaving a conversation or when no conversation is selected
+function handleNoConversationSelected() {
+    document.getElementById('messageInput').disabled = true;
+    document.querySelector('.btn.btn-primary').disabled = true;
+}
+
+// Initially, no conversation is selected, so inputs are disabled
+handleNoConversationSelected();
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var hamburgerMenu = document.querySelector('.hamburger-menu');
+    var conversationsSection = document.querySelector('.conversations');
+
+    hamburgerMenu.addEventListener('click', function() {
+        conversationsSection.classList.toggle('collapsed');
+    });
+});
+
+</script>
+    
+
+</body>
+</html>
