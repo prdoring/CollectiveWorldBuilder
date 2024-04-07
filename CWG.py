@@ -7,6 +7,7 @@ from collections import Counter
 import json
 import time
 import os
+import threading
 
 load_dotenv()
 
@@ -92,14 +93,12 @@ def insert_unique_items(table, items):
             table.insert(item)
 
 
-import json
-
 def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
     conversation = get_or_create_conversation(conversation_id)
     context = fetch_context()
 
-    #request relevant history summary
+    # request relevant history summary
 
     messages_history = conversation['messages']
     last_message = messages_history[-1]['text'] if messages_history else None
@@ -111,11 +110,12 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     messages_for_fact = prepare_messages_for_fact(context, message, last_message, fact_message)
 
     response_text = get_gpt_response(messages_for_gpt)
-    fact_response_json = get_fact_response(messages_for_fact)
+
+    # Call get_fact_response on a separate thread
+    fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,))
+    fact_response_thread.start()
 
     update_conversation_history(conversation_id, message, response_text, messages_history)
-    process_new_information(fact_response_json)
-
     print_facts_count_by_category()
     return response_text
 
@@ -172,9 +172,16 @@ def prepare_messages_for_overview(context):
 
     messages_for_welcome = [
         {"role": "system", "content": context },
-        {"role": "user", "content": "Based on the information you have about this city please return just the html and css of a very detailed web page containing organized comprehensive and verbose details of everything you know about this city. Only return the raw html"}
+        {"role": "user", "content": "Based on the information you have about this city a very detailed web page containing organized comprehensive and verbose details of everything you know about this city. Only return the raw html"}
     ]
     return messages_for_welcome
+
+def call_update_overview():
+    context = fetch_context()
+    messages_for_overview = prepare_messages_for_overview(context)
+    response_text = get_gpt_response(messages_for_overview).replace('```html',"")
+    replace_html_content(response_text)
+    print("Overview Updated...")
 
 def get_gpt_response(messages_for_gpt):
     """Get a response from the GPT model."""
@@ -184,6 +191,11 @@ def get_gpt_response(messages_for_gpt):
     )
     print(completion.usage)
     return completion.choices[0].message.content
+
+def call_get_fact_response(messages_for_fact):
+    """Call get_fact_response in a separate thread."""
+    fact_response_json = get_fact_response(messages_for_fact)
+    process_new_information(fact_response_json)
 
 def get_fact_response(messages_for_fact):
     """Get a response from the GPT model focused on facts."""
@@ -319,9 +331,13 @@ def update_overview():
     messages_for_overview = prepare_messages_for_overview(context)
     response_text = get_gpt_response(messages_for_overview).replace('```html',"")
     replace_html_content(response_text)
+    
 if(file_not_modified_for_hour()):
     print("Updating Overview Page")
-    update_overview()
+    # Call get_fact_response on a separate thread
+    overview_response_thread = threading.Thread(target=call_update_overview)
+    overview_response_thread.start()
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0')
