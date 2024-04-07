@@ -39,11 +39,10 @@ proper_nouns_table = facts_db.table('proper_nouns')
 
 # Read the initial system message from GPT_Prompt.txt and store it in a variable
 with open('GPT_Prompt.txt', 'r', encoding='utf-8') as file:
-    initial_system_message = file.read().strip()
+    initial_system_message_text = file.read().strip()
 with open('Fact_Prompt.txt', 'r', encoding='utf-8') as file:
-    fact_message = file.read().strip()
+    fact_message_text = file.read().strip()
 
-    print(initial_system_message)
 
 def print_facts_count_by_category():
     """
@@ -91,87 +90,121 @@ def insert_unique_items(table, items):
             table.insert(item)
 
 
-def message_gpt(message, conversation_id):
+import json
+
+def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text):
+    """Process and respond to a message in a conversation using GPT, including system and fact messages."""
+    conversation = get_or_create_conversation(conversation_id)
+    context = fetch_context()
+
+    #request relevant history summary
+
+    messages_history = conversation['messages']
+    last_message = messages_history[-1]['text'] if messages_history else None
+
+    message_for_relevant_history = prepare_messages_for_relevant_history(context, message, last_message)
+    relevant_history = get_gpt_response(message_for_relevant_history)
+    print(relevant_history)
+    messages_for_gpt = prepare_messages_for_gpt(messages_history, message, relevant_history, initial_system_message)
+    messages_for_fact = prepare_messages_for_fact(context, message, last_message, fact_message)
+
+    response_text = get_gpt_response(messages_for_gpt)
+    fact_response_json = get_fact_response(messages_for_fact)
+
+    update_conversation_history(conversation_id, message, response_text, messages_history)
+    process_new_information(fact_response_json)
+
+    print_facts_count_by_category()
+    return response_text
+
+def get_or_create_conversation(conversation_id):
+    """Retrieve or create a new conversation in the database."""
     Conversation = Query()
     conversation = conversations_table.search(Conversation.name == conversation_id)
-    context = fetch_context()
-    # If the conversation does not exist in the database, initialize it
-    print(conversation_id)
     if not conversation:
         conversations_table.insert({'name': conversation_id, 'messages': []})
-        conversation = [{'name': conversation_id, 'messages': []}]
-    
-    # Extract the current conversation's message history
-    messages_history = conversation[0]['messages']
-    
-    # Prepare messages for GPT-3 call, including history
+        return {'name': conversation_id, 'messages': []}
+    return conversation[0]
+
+def prepare_messages_for_gpt(messages_history, message, context, initial_system_message):
+    """Prepare the messages for the GPT model, including system messages."""
+    gpt_chat_history = [{"role": msg["sender"], "content": msg["text"]} for msg in messages_history][-100:]
     messages_for_gpt = [
         {"role": "system", "content": "city information DB: " + context},
         {"role": "system", "content": initial_system_message}
-    ]
-    messages_for_fact = [
-        {"role": "system", "content": context + "\n" + fact_message}
-    ]
-    
-    # Add history messages and the new message to the GPT call
-    gpt_chat_history = []
-    for msg in messages_history:
-        gpt_chat_history.append({"role": msg["sender"], "content": msg["text"]})
-    gpt_chat_history = gpt_chat_history[-100:]
-    messages_for_gpt+=(gpt_chat_history)
-    # Append the new user message
-    messages_for_gpt.append({"role": "user", "content": message})
-    last_message = gpt_chat_history[-1:][0].get("content")
+    ] + gpt_chat_history + [{"role": "user", "content": message}]
+    return messages_for_gpt
 
-    if(last_message):
-        messages_for_fact.append({"role": "assistant", "content": last_message})
-    messages_for_fact.append({"role": "user", "content": message})
-    # GPT-3 call with conversation history
-    print(messages_for_gpt)
+def prepare_messages_for_fact(context, message, last_message, fact_message):
+    """Prepare messages for fetching facts, including the last assistant message and the new user message."""
+    messages_for_fact = [
+        {"role": "system", "content": context + "\n" + fact_message},
+        {"role": "user", "content": message}
+    ]
+    if last_message:
+        messages_for_fact.insert(1, {"role": "assistant", "content": last_message})
+    return messages_for_fact
+
+def prepare_messages_for_relevant_history(context, message, last_message):
+    """Prepare messages for fetching facts, including the last assistant message and the new user message."""
+
+    com_string = "Interviewee: '" + message + "'"
+    if last_message:
+        com_string = "Interviewer: '" + last_message + "' " + com_string
+
+    messages_for_history = [
+        {"role": "system", "content": context },
+        {"role": "user", "content": "based on the following exchange, please give a summary of any relevant information from your facts data or proper nouns that would help the interviewer in responding. \n"+com_string}
+    ]
+    return messages_for_history
+
+def prepare_messages_for_welcome_message(context):
+
+    messages_for_welcome = [
+        {"role": "system", "content": context },
+        {"role": "user", "content": "if you were an interviewer with this database of information can you give me a list of 5 topics in which you want to gather more information?  please respond in a UL html with no additional characters"}
+    ]
+    return messages_for_welcome
+
+def get_gpt_response(messages_for_gpt):
+    """Get a response from the GPT model."""
     completion = client.chat.completions.create(
         model="gpt-4-0125-preview",
         messages=messages_for_gpt
     )
+    print(completion.usage)
+    return completion.choices[0].message.content
 
+def get_fact_response(messages_for_fact):
+    """Get a response from the GPT model focused on facts."""
     fact_completion = client.chat.completions.create(
         model="gpt-4-turbo-preview",
         response_format={"type": "json_object"},
         messages=messages_for_fact
     )
-
-    print(completion.usage)
-
-    # Attempt to parse the JSON string to a Python dictionary
     try:
-        fact_response_json = json.loads(fact_completion.choices[0].message.content)
+        return json.loads(fact_completion.choices[0].message.content)
     except json.JSONDecodeError:
         print("Failed to decode JSON from GPT response")
-        return "Error: Could not process the response from the server."
-    
+        return {"error": "Could not process the response from the server."}
 
-    response_text = completion.choices[0].message.content
-
-    # Update the conversation history in TinyDB
+def update_conversation_history(conversation_id, message, response_text, messages_history):
+    """Update the conversation history in the database."""
     new_message = {"sender": "user", "text": message}
-    gpt_message = {"sender": "assistant", "text": response_text}  # Adjust "system" to "gpt" or "server" as per your schema
+    gpt_message = {"sender": "assistant", "text": response_text}
+    Conversation = Query()
     conversations_table.update({'messages': messages_history + [new_message, gpt_message]}, Conversation.name == conversation_id)
 
-    # Handle new facts and proper nouns
+
+def process_new_information(fact_response_json):
+    """Process new information received from the fact response."""
     new_info = fact_response_json.get('new_info', [])
     new_proper_nouns = fact_response_json.get('new_proper_nouns', [])
-    if new_info:
-        print(new_info)
-    if new_proper_nouns:
-        print(new_proper_nouns)
-    
-    insert_unique_items(facts_table, new_info)
-    insert_unique_items(proper_nouns_table, new_proper_nouns)
-
-    print_facts_count_by_category()
-    return response_text
-
-
-
+    if new_info or new_proper_nouns:
+        print("New Info:", new_info)
+        print("New Proper Nouns:", new_proper_nouns)
+        insert_unique_items(facts_table, new_info)
+        insert_unique_items(proper_nouns_table, new_proper_nouns)
 
 
 @app.route('/')
@@ -230,6 +263,13 @@ def handle_join_conversation(data):
 @socketio.on('leave_conversation')
 def handle_leave_conversation(data):
     leave_room(data['conversation_id'])
+
+@socketio.on('request_welcome_message')
+def request_welcome_message(data):
+     context = fetch_context()
+     messages_for_welcome = prepare_messages_for_welcome_message(context)
+     response_text = get_gpt_response(messages_for_welcome)
+     emit('welcome_message', {'message': response_text})
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0')

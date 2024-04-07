@@ -25,33 +25,36 @@
             padding: 20px;
             overflow-y: auto;
         }
+        /* Styling for conversation list */
         .conversations {
-            background-color: #242424;
+            background-color: #242424; /* Slightly adjusted for modern look */
             width: 50%;
-            border-radius: 10px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            border-radius: 10px; /* Smoother rounded corners */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5); /* Subtle shadow */
             transition: all 0.3s ease;
-            z-index:0;
+            z-index: 0;
         }
+        /* Chat area styling */
         .chat {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            background-color: #181818;
+            background-color: #181818; /* Slightly adjusted for modern look */
             max-width: 80%;
-            border-radius: 10px;
-            margin-left:-10px;
+            border-radius: 10px; /* Smoother rounded corners */
+            margin-left: -10px;
             z-index: 1;
         }
 
+        /* Chat title styling */
         .chatTitle {
             font-size: 1.5em;
-            margin: -20px;
+            margin: -20px 0 10px 0; /* Adjusted margin for alignment */
             z-index: 3;
-            color: #ffffff; /* White text color */
-            background-color: #333333; /* Dark background color */
-            padding: 10px; /* Add padding for better appearance */
-            border-radius: 10px; /* Rounded corners */
+            color: #ffffff;
+            background-color: #333333;
+            padding: 10px;
+            border-radius: 10px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
@@ -64,33 +67,39 @@
             margin-bottom: 0;
             flex-grow: 1;
         }
+        /* Message input area styling */
         .message-input {
             display: flex;
             margin-top: auto;
             background-color: #333;
             padding: 10px;
-            border-radius: 5px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            border-radius: 5px; /* Adjusted for a sleeker look */
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle inner shadow */
         }
+        /* Input field styling */
         .message-input input[type="text"] {
             flex-grow: 1;
             margin-right: 10px;
-            background-color: #444;
+            background-color: #444; /* Slightly lighter for contrast */
             border: none;
             color: white;
             padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+            border-radius: 5px; /* Adjusted for sleek look */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); /* Subtle shadow for depth */
         }
+        /* Send button styling */
         .btn.btn-primary {
             border: none;
-            background-color: #007bff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            transition: background-color 0.3s ease;
+            background-image: linear-gradient(to right, #0062E6, #33AEFF); /* Modern gradient */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
         }
+
+        /* Adjustments for send button on hover */
         .btn.btn-primary:hover {
-            background-color: #0056b3;
+            background-image: linear-gradient(to right, #004DBF, #007BFF); /* Darker gradient for hover */
         }
+        
         .conversations ul {
             list-style-type: none;
             padding: 0;
@@ -109,24 +118,28 @@
             background-color: #007bff;
             transform: translateX(5px);
         }
+
         .message-bubble {
             padding: 10px 20px;
-            border-radius: 20px;
+            border-radius: 20px; /* Smoother rounded corners */
             margin-bottom: 10px;
             max-width: 80%;
-            opacity: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Lighter shadow for subtlety */
+            color: #f1f1f1; /* Light color for text */
             transform: scale(0.5);
             animation: popIn 0.5s forwards;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
+        /* User message styling */
         .user-message {
-            background-color: #007bff;
+            background-image: linear-gradient(to top right, #0099FF, #19c6ff); /* Gradient for user messages */
             margin-left: auto;
             border-bottom-right-radius: 0;
         }
+
+        /* Server message styling */
         .server-message {
-            background-color: #f1f0f0;
-            color: #333;
+            background-image:linear-gradient(to bottom left, #404040, #1f1f1f); /* Slightly lighter for contrast */
+            color: #ddd; /* Light color for text */
             border-bottom-left-radius: 0;
         }
         .message-wrapper {
@@ -141,7 +154,11 @@
         #newConversationForm {
             align-items: center;
             margin-bottom: 20px; /* Add some space between the form and the conversation list */
-            margin-top: 60px;
+            margin-top: 20px;
+            background-image:linear-gradient(to bottom left, #404040, #1f1f1f); /* Slightly lighter for contrast */
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
         }
 
         #newConversationForm input[type="text"] {
@@ -169,14 +186,20 @@
             margin: 3px;
             margin-top: 0px;
             padding: 10px 15px;
-            border: none;
-            background-color: #007bff;
             color: white;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
             cursor: pointer;
             transition: background-color 0.3s ease;
             width:100%;
+
+            border: none;
+            background-image: linear-gradient(to right, #0062E6, #33AEFF); /* Modern gradient */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+        }
+
+        #newConversationForm button:hover{
+            background-image: linear-gradient(to right, #004DBF, #007BFF); /* Darker gradient for hover */
         }
 
         #newConversationForm button:hover {
@@ -198,6 +221,25 @@
             margin-top: -10px;
             margin-left: -10px;
         }
+
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: white;
+            animation: bounce 1.4s infinite both;
+            margin: 0 4px;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
 
         /* Adjust container width when conversations section is collapsed */
         @media (max-width: 768px) {
@@ -280,7 +322,6 @@
         <ul id="conversationList">
             <!-- Conversations will be listed here -->
         </ul>
-        <hr/>
         <form id="newConversationForm">
             <input type="text" id="newConversationName" placeholder="New Character" required>
             <br/>
@@ -290,6 +331,11 @@
     <div class="chat">
         <div class="chatTitle" id="chatTitle"></div>
         <ul id="messages"></ul>
+        <div id="typingIndicator" style="display: none; text-align: center; padding: 10px;">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
         <div class="message-input">
             <input type="text" id="messageInput" autocomplete="off" placeholder="Type a message..." disabled>
             <button class="btn btn-primary" onclick="sendMessage()" disabled>Send</button>
@@ -367,12 +413,22 @@ function joinConversation(conversationId) {
 
 
 function sendMessage() {
-    var message = document.getElementById('messageInput').value.trim();
+    var messageInput = document.getElementById('messageInput');
+    var sendButton = document.querySelector('.btn.btn-primary');
+    var message = messageInput.value.trim();
     if (!message) return;
-    socket.emit('send_message', {message: message, conversation_id: currentConversationId});
-    document.getElementById('messageInput').value = '';
-}
 
+    // Disable the message input and send button immediately after sending a message
+    messageInput.disabled = true;
+    sendButton.disabled = true;
+    document.getElementById('typingIndicator').style.display = 'block';
+
+    // Send the message to the server
+    socket.emit('send_message', {message: message, conversation_id: currentConversationId});
+
+    // Clear the message input field
+    messageInput.value = '';
+}
 
 socket.on('connect', function() {
     // No need to do anything here for now, the server will automatically send existing conversations
@@ -405,6 +461,13 @@ socket.on('broadcast_message', function(data) {
     }
 });
 
+socket.on('welcome_message', function(data) {
+    
+    if (currentConversationId==null) {
+        displayWelcomeMessage(data.message); // Pass the whole message object
+    }
+});
+
 function displayMessage(messageData, senderOverride) {
     var messages = document.getElementById('messages');
     var wrapper = document.createElement('div');
@@ -420,11 +483,31 @@ function displayMessage(messageData, senderOverride) {
         newMessage.classList.add('user-message');
     } else {
         newMessage.classList.add('server-message');
+                
+        // Re-enable the message input and send button
+        document.getElementById('messageInput').disabled = false;
+        document.querySelector('.btn.btn-primary').disabled = false;
+        document.getElementById('typingIndicator').style.display = 'none';
     }
 
     wrapper.appendChild(newMessage);
     messages.appendChild(wrapper);
     messages.scrollTop = messages.scrollHeight;
+}
+
+function displayWelcomeMessage(message){
+    var messages = document.getElementById('messages');
+    var wrapper = document.createElement('div');
+    wrapper.classList.add('message-wrapper');
+
+    var newMessage = document.createElement('div');
+    // Adjust this line to use messageData.text
+    newMessage.innerHTML = message
+    newMessage.classList.add('message-bubble');
+    newMessage.classList.add('server-message');
+    wrapper.appendChild(newMessage);
+    messages.appendChild(wrapper);
+    document.getElementById('typingIndicator').style.display = 'none';
 }
 
 
@@ -445,6 +528,8 @@ document.addEventListener('DOMContentLoaded', function() {
     hamburgerMenu.addEventListener('click', function() {
         conversationsSection.classList.toggle('collapsed');
     });
+    displayWelcomeMessage("<h2>Welcome!</h2><br/>To get started make a character and get to talking!  If you are looking for inspiration wait here and you will be given a list of the top things the interviewer wants to know!<br/>")
+    socket.emit('request_welcome_message',{});
 });
 
 </script>
