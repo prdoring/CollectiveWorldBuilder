@@ -5,6 +5,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from collections import Counter
 import json
+import time
+import os
 
 load_dotenv()
 
@@ -166,6 +168,14 @@ def prepare_messages_for_welcome_message(context):
     ]
     return messages_for_welcome
 
+def prepare_messages_for_overview(context):
+
+    messages_for_welcome = [
+        {"role": "system", "content": context },
+        {"role": "user", "content": "Based on the information you have about this city please return just the html and css of a very detailed web page containing organized comprehensive and verbose details of everything you know about this city. Only return the raw html"}
+    ]
+    return messages_for_welcome
+
 def get_gpt_response(messages_for_gpt):
     """Get a response from the GPT model."""
     completion = client.chat.completions.create(
@@ -210,6 +220,10 @@ def process_new_information(fact_response_json):
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/overview')
+def overview():
+    return render_template('overview.html')
 
 @socketio.on('connect')
 def on_connect():
@@ -270,6 +284,44 @@ def request_welcome_message(data):
      messages_for_welcome = prepare_messages_for_welcome_message(context)
      response_text = get_gpt_response(messages_for_welcome)
      emit('welcome_message', {'message': response_text})
+
+def file_not_modified_for_hour(file_path="templates/overview.html"):
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        return True
+    # Get the modification time of the file
+    modification_time = os.path.getmtime(file_path)
+
+    # Get the current time
+    current_time = time.time()
+
+    # Calculate the time difference in seconds
+    time_difference = current_time - modification_time
+
+    # Check if the file hasn't been modified for over an hour (3600 seconds)
+    if time_difference > 3600:
+        return True
+    else:
+        return False
+
+def replace_html_content(new_content, file_path="templates/overview.html"):
+    try:
+        # Write the new content to the file
+        with open(file_path, 'w') as file:
+            file.write(new_content)
+
+        print("Replacement successful.")
+    except Exception as e:
+        print("An error occurred:", e)
+
+def update_overview():
+    context = fetch_context()
+    messages_for_overview = prepare_messages_for_overview(context)
+    response_text = get_gpt_response(messages_for_overview).replace('```html',"")
+    replace_html_content(response_text)
+if(file_not_modified_for_hour()):
+    print("Updating Overview Page")
+    update_overview()
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0')
