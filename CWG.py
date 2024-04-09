@@ -250,7 +250,7 @@ def handle_create_conversation(data):
     # Check if the conversation already exists
     if not conversations_table.search(Conversation.name == name):
         # Insert new conversation if it doesn't exist
-        welcome_message = {"sender": "assistant", "text": "Hello "+name+"! Please introduce yourself, let me know who you are, what you do etc, or just say hello! \n Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I allready have) if you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
+        welcome_message = {"sender": "assistant", "text": "Hello "+name+"! Please introduce yourself, let me know who you are, what you do etc, or just say hello! \n Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have) if you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
         conversations_table.insert({'name': name, 'messages': [welcome_message]})
         print(name)
         emit('conversation_created_all', {'name': name}, broadcast=True)
@@ -331,7 +331,7 @@ def update_overview():
     messages_for_overview = prepare_messages_for_overview(context)
     response_text = get_gpt_response(messages_for_overview).replace('```html',"")
     replace_html_content(response_text)
-    
+
 if(file_not_modified_for_hour()):
     print("Updating Overview Page")
     # Call get_fact_response on a separate thread
