@@ -24,7 +24,10 @@ conversations_db = TinyDB('conversations_db.json')
 
 conversations_table = conversations_db.table('conversations')
 facts_table = facts_db.table('facts')
+last_overview_fact_count = len(facts_table.all())
+max_fact_delta_for_overview_update = 20
 
+print("Current Fact Count: ", last_overview_fact_count)
 
 categories_list = [
     "Overview",
@@ -104,7 +107,7 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     last_message = messages_history[-1]['text'] if messages_history else None
 
     message_for_relevant_history = prepare_messages_for_relevant_history(context, message, last_message)
-    relevant_history = get_gpt_response(message_for_relevant_history)
+    relevant_history = get_gpt3_response(message_for_relevant_history)
     print(relevant_history)
     messages_for_gpt = prepare_messages_for_gpt(messages_history, message, relevant_history, initial_system_message)
     messages_for_fact = prepare_messages_for_fact(context, message, last_message, fact_message)
@@ -192,6 +195,15 @@ def get_gpt_response(messages_for_gpt):
     print(completion.usage)
     return completion.choices[0].message.content
 
+def get_gpt3_response(messages_for_gpt):
+    """Get a response from the GPT model."""
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo-0125",
+        messages=messages_for_gpt
+    )
+    print(completion.usage)
+    return completion.choices[0].message.content
+
 def call_get_fact_response(messages_for_fact):
     """Call get_fact_response in a separate thread."""
     fact_response_json = get_fact_response(messages_for_fact)
@@ -227,6 +239,7 @@ def process_new_information(fact_response_json):
         print("New Proper Nouns:", new_proper_nouns)
         insert_unique_items(facts_table, new_info)
         insert_unique_items(proper_nouns_table, new_proper_nouns)
+        start_update_overview()
 
 
 @app.route('/')
@@ -332,12 +345,16 @@ def update_overview():
     response_text = get_gpt_response(messages_for_overview).replace('```html',"")
     replace_html_content(response_text)
 
-if(file_not_modified_for_hour()):
-    print("Updating Overview Page")
-    # Call get_fact_response on a separate thread
-    overview_response_thread = threading.Thread(target=call_update_overview)
-    overview_response_thread.start()
+def start_update_overview():
+    if(len(facts_table.all())-last_overview_fact_count > max_fact_delta_for_overview_update):
+        print("Updating Overview Page")
+        # Call get_fact_response on a separate thread
+        overview_response_thread = threading.Thread(target=call_update_overview)
+        overview_response_thread.start()
+    else:
+        print("No overview Update Needed")
 
+start_update_overview()
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0')
