@@ -354,7 +354,7 @@
 
 <script>
 var socket = io();
-
+var user = ""
 document.getElementById('messageInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -432,7 +432,7 @@ function sendMessage() {
     document.getElementById('typingIndicator').style.display = 'block';
 
     // Send the message to the server
-    socket.emit('send_message', {message: message, conversation_id: currentConversationId});
+    socket.emit('send_message', {message: message, conversation_id: currentConversationId, user_id: user});
 
     // Clear the message input field
     messageInput.value = '';
@@ -457,6 +457,7 @@ socket.on('existing_conversations', function(conversations) {
 
 socket.on('conversation_history', function(data) {
     var messages = document.getElementById('messages');
+    user = data.user
     messages.innerHTML = ''; // Clear existing messages
     data.history.forEach(function(message) {
         displayMessage(message); // Pass the whole message object

@@ -1,29 +1,90 @@
-from flask import Flask, render_template
+from flask import Flask, redirect, url_for, session, render_template_string, render_template, request
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from authlib.integrations.flask_client import OAuth
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from tinydb import TinyDB, Query
-from openai import OpenAI
-from dotenv import load_dotenv
 from collections import Counter
+from dotenv import load_dotenv
+from openai import OpenAI
 import json
 import time
 import os
 import threading
 
+
 load_dotenv()
 
 client = OpenAI()
-
+print(os.getenv('OPENAI_API_KEY'))
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET')
+app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
+app.config['GOOGLE_DISCOVERY_URL'] = (
+    "https://accounts.google.com/.well-known/openid-configuration"
+)
+
+# Flask-Login setup
+login_manager = LoginManager(app)
+login_manager.login_view = "google_login"
+
+# Authlib OAuth setup
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=app.config['GOOGLE_CLIENT_ID'],
+    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    access_token_url='https://oauth2.googleapis.com/token',
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
+# User session management setup
+class User(UserMixin):
+    pass
+
+@login_manager.user_loader
+def user_loader(email):
+    user = User()
+    user.id = email
+    return user
+
+# Google OAuth login route
+@app.route('/login')
+def google_login():
+    redirect_uri = url_for('authorize', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/authorize')
+def authorize():
+    token = google.authorize_access_token()
+    resp = google.get('userinfo')
+    user_info = resp.json()
+    user = User()
+    user.id = user_info['email']
+    login_user(user)
+    return redirect(url_for('home'))
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+
 socketio = SocketIO(app)
 
 # Initialize TinyDB and specify the database file
 facts_db = TinyDB('facts_db.json')
 conversations_db = TinyDB('conversations_db.json')
+user_facts_db = TinyDB('user_facts_db.json')
 # Use tables for different types of data, e.g., conversations
 
 conversations_table = conversations_db.table('conversations')
 facts_table = facts_db.table('facts')
+user_facts_table = user_facts_db.table('user_facts')
 last_overview_fact_count = len(facts_table.all())
 max_fact_delta_for_overview_update = 20
 
@@ -96,7 +157,7 @@ def insert_unique_items(table, items):
             table.insert(item)
 
 
-def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text):
+def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system"):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
     conversation = get_or_create_conversation(conversation_id)
     context = fetch_context()
@@ -115,7 +176,8 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     response_text = get_gpt_response(messages_for_gpt)
 
     # Call get_fact_response on a separate thread
-    fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,))
+    print("messagegpt:"+user_id)
+    fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
     fact_response_thread.start()
 
     update_conversation_history(conversation_id, message, response_text, messages_history)
@@ -204,10 +266,11 @@ def get_gpt3_response(messages_for_gpt):
     print(completion.usage)
     return completion.choices[0].message.content
 
-def call_get_fact_response(messages_for_fact):
+def call_get_fact_response(messages_for_fact, user_id):
     """Call get_fact_response in a separate thread."""
     fact_response_json = get_fact_response(messages_for_fact)
-    process_new_information(fact_response_json)
+    print("CGFR: "+ user_id)
+    process_new_information(fact_response_json, user_id)
 
 def get_fact_response(messages_for_fact):
     """Get a response from the GPT model focused on facts."""
@@ -230,20 +293,26 @@ def update_conversation_history(conversation_id, message, response_text, message
     conversations_table.update({'messages': messages_history + [new_message, gpt_message]}, Conversation.name == conversation_id)
 
 
-def process_new_information(fact_response_json):
+def process_new_information(fact_response_json, user_id):
     """Process new information received from the fact response."""
     new_info = fact_response_json.get('new_info', [])
     new_proper_nouns = fact_response_json.get('new_proper_nouns', [])
     if new_info or new_proper_nouns:
-        print("New Info:", new_info)
         print("New Proper Nouns:", new_proper_nouns)
         insert_unique_items(facts_table, new_info)
+        for info in new_info:
+            info["user"] = user_id
+        
+        print("New Info:", new_info)
+        insert_unique_items(user_facts_table, new_info)
         insert_unique_items(proper_nouns_table, new_proper_nouns)
         start_update_overview()
 
 
 @app.route('/')
+@login_required
 def home():
+    print(f"User {current_user.id} accessed the home page.")
     return render_template('index.html')
 
 @app.route('/overview')
@@ -253,7 +322,10 @@ def overview():
 @socketio.on('connect')
 def on_connect():
     # Emit the existing conversation names to the connected client
-    existing_conversations = [{'name': conversation['name']} for conversation in conversations_table.all()]
+    User = Query()
+    filtered_conversations = [conversation for conversation in conversations_table.search(User.user == current_user.id)]
+    # Extract 'name' from each filtered conversation
+    existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
     emit('existing_conversations', existing_conversations)
 
 @socketio.on('create_conversation')
@@ -264,7 +336,7 @@ def handle_create_conversation(data):
     if not conversations_table.search(Conversation.name == name):
         # Insert new conversation if it doesn't exist
         welcome_message = {"sender": "assistant", "text": "Hello "+name+"! Please introduce yourself, let me know who you are, what you do etc, or just say hello! \n Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have) if you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
-        conversations_table.insert({'name': name, 'messages': [welcome_message]})
+        conversations_table.insert({'name': name, 'messages': [welcome_message], 'user':current_user.id})
         print(name)
         emit('conversation_created_all', {'name': name}, broadcast=True)
         emit('conversation_created', {'name': name})
@@ -281,7 +353,8 @@ def handle_send_message(data):
         conversation = conversation[0]
         # Update the conversation record with the new message list
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
-        res =  {'text': message_gpt(message['text'], conversation_id), 'sender': 'system'}
+        print("handle Send: "+ data["user_id"])
+        res =  {'text': message_gpt(message['text'], conversation_id, user_id = data["user_id"]), 'sender': 'system'}
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
 
         # Optionally handle server response similarly
@@ -296,7 +369,7 @@ def handle_join_conversation(data):
     conversation = conversations_table.search(Conversation.name == conversation_id)
     if conversation:
         # Send back the conversation's history
-        emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation[0]['messages']})
+        emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation[0]['messages'], 'user':current_user.id})
     
 
 @socketio.on('leave_conversation')
