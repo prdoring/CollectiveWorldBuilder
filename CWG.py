@@ -137,6 +137,14 @@ def print_facts_count_by_category():
         print(f"{category}: {count}")
     return cat_counts
 
+# Function to count the number of entries for a specific user
+def count_user_entries(user_name, table=user_facts_table):
+    UserQuery = Query()
+    # Search for entries where the 'user' field matches the given username
+    user_entries = table.search(UserQuery.user == user_name)
+    # Return the count of entries
+    return len(user_entries)
+
 def fetch_context():
     # Fetch all records
     all_facts = facts_table.all()
@@ -176,7 +184,6 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     response_text = get_gpt_response(messages_for_gpt)
 
     # Call get_fact_response on a separate thread
-    print("messagegpt:"+user_id)
     fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
     fact_response_thread.start()
 
@@ -269,7 +276,6 @@ def get_gpt3_response(messages_for_gpt):
 def call_get_fact_response(messages_for_fact, user_id):
     """Call get_fact_response in a separate thread."""
     fact_response_json = get_fact_response(messages_for_fact)
-    print("CGFR: "+ user_id)
     process_new_information(fact_response_json, user_id)
 
 def get_fact_response(messages_for_fact):
@@ -313,23 +319,46 @@ def process_new_information(fact_response_json, user_id):
 @login_required
 def home():
     print(f"User {current_user.id} accessed the home page.")
+    print("Entries For ",current_user.id, ": ", count_user_entries(current_user.id))
     return render_template('index.html')
 
 @app.route('/overview')
 def overview():
     return render_template('overview.html')
 
+@app.route('/userfacts')
+@login_required
+def user_facts():
+    all_facts = user_facts_table.all()
+    UserQuery = Query()
+    # Search for entries where the 'user' field matches the given username
+    user_entries = user_facts_table.search(UserQuery.user == current_user.id)
+    all_facts = user_entries
+    categorized_facts = {}
+    for fact in all_facts:
+        category = fact['category']
+        if category not in categorized_facts:
+            categorized_facts[category] = []
+        categorized_facts[category].append(fact['fact'])
+    return render_template('userfacts.html', categorized_facts=categorized_facts)
+
+
 @socketio.on('connect')
 def on_connect():
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
     # Emit the existing conversation names to the connected client
     User = Query()
     filtered_conversations = [conversation for conversation in conversations_table.search(User.user == current_user.id)]
     # Extract 'name' from each filtered conversation
     existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
     emit('existing_conversations', existing_conversations)
+    emit('user_fact_count', {'count': count_user_entries(current_user.id)})
 
 @socketio.on('create_conversation')
 def handle_create_conversation(data):
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
     name = data['name']
     Conversation = Query()
     # Check if the conversation already exists
@@ -337,12 +366,13 @@ def handle_create_conversation(data):
         # Insert new conversation if it doesn't exist
         welcome_message = {"sender": "assistant", "text": "Hello "+name+"! Please introduce yourself, let me know who you are, what you do etc, or just say hello! \n Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have) if you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
         conversations_table.insert({'name': name, 'messages': [welcome_message], 'user':current_user.id})
-        print(name)
         emit('conversation_created_all', {'name': name}, broadcast=True)
         emit('conversation_created', {'name': name})
 
 @socketio.on('send_message')
 def handle_send_message(data):
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
     message = {'text': data['message'], 'sender': 'user'}
     conversation_id = data['conversation_id']
     Conversation = Query()
@@ -353,16 +383,19 @@ def handle_send_message(data):
         conversation = conversation[0]
         # Update the conversation record with the new message list
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
-        print("handle Send: "+ data["user_id"])
-        res =  {'text': message_gpt(message['text'], conversation_id, user_id = data["user_id"]), 'sender': 'system'}
+        emit('user_fact_count', {'count': count_user_entries(current_user.id)})
+        
+        res =  {'text': message_gpt(message['text'], conversation_id, user_id = current_user.id), 'sender': 'system'}
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
-
+    
         # Optionally handle server response similarly
 
 
 
 @socketio.on('join_conversation')
 def handle_join_conversation(data):
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
     conversation_id = data['conversation_id']
     join_room(conversation_id)
     Conversation = Query()
@@ -374,10 +407,14 @@ def handle_join_conversation(data):
 
 @socketio.on('leave_conversation')
 def handle_leave_conversation(data):
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
     leave_room(data['conversation_id'])
 
 @socketio.on('request_welcome_message')
 def request_welcome_message(data):
+     if not current_user.is_authenticated:
+        return False  # Or handle appropriately
      context = fetch_context()
      messages_for_welcome = prepare_messages_for_welcome_message(context)
      response_text = get_gpt_response(messages_for_welcome)
@@ -430,4 +467,4 @@ def start_update_overview():
 start_update_overview()
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host='0.0.0.0')
+    socketio.run(app, debug=True, host='0.0.0.0', port=6969)

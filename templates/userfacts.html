@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Facts</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 16px;
+        }
+        h1 {
+            color: #bb86fc;
+        }
+        h2 {
+            color: #03dac6;
+        }
+        div {
+            background-color: #333;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Contributions</h1>
+    {% if categorized_facts %}
+        {% for category, facts in categorized_facts.items() %}
+        <div>
+            <h2>{{ category }}</h2>
+            <ul>
+                {% for fact in facts %}
+                <li>{{ fact }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No facts available.</p>
+    {% endif %}
+</body>
+</html>

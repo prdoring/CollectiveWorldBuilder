@@ -333,6 +333,8 @@
             <br/>
             <button type="submit">Create</button>
             <a href="/overview" target="_blank" class="external-link">Need Context? City Overview</a>
+            <hr/>
+            <a href="/userfacts" target="_blank" class="external-link" id="your-contributions">You Have Contributed 0 Unique Pieces of Lore</a>
 
         </form>
     </div>
@@ -354,7 +356,6 @@
 
 <script>
 var socket = io();
-var user = ""
 document.getElementById('messageInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -398,6 +399,10 @@ socket.on('conversation_created', function(data) {
     joinConversation(data.name); // Auto-select the newly created conversation
 });
 
+socket.on('user_fact_count', function(data) {
+    document.getElementById("your-contributions").innerHTML = "You Have Contributed "+data.count+" Unique Pieces of Lore"
+});
+
 
 function joinConversation(conversationId) {
     if (currentConversationId) {
@@ -432,7 +437,7 @@ function sendMessage() {
     document.getElementById('typingIndicator').style.display = 'block';
 
     // Send the message to the server
-    socket.emit('send_message', {message: message, conversation_id: currentConversationId, user_id: user});
+    socket.emit('send_message', {message: message, conversation_id: currentConversationId});
 
     // Clear the message input field
     messageInput.value = '';
@@ -457,7 +462,6 @@ socket.on('existing_conversations', function(conversations) {
 
 socket.on('conversation_history', function(data) {
     var messages = document.getElementById('messages');
-    user = data.user
     messages.innerHTML = ''; // Clear existing messages
     data.history.forEach(function(message) {
         displayMessage(message); // Pass the whole message object
