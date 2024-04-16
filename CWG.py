@@ -1,13 +1,9 @@
-from flask import Flask, redirect, url_for, session, render_template_string, render_template, request
+from flask import Flask, redirect, url_for, session, render_template, request
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from authlib.integrations.flask_client import OAuth
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from tinydb import TinyDB, Query
-from collections import Counter
+from tinydb import Query
 from dotenv import load_dotenv
-from openai import OpenAI
-import json
-import time
 import os
 import threading
 from summary_creator import *
@@ -130,7 +126,14 @@ def home():
 
 @app.route('/overview')
 def overview():
-    return render_template('overview.html')
+    dat = []
+    for category in categories_list:
+        overviewQuery = Query()
+        snc = overview_table.search(overviewQuery.category == category)
+        if(snc):
+            dat.append(snc[0]['data']['wikiSection'])
+            print(dat)
+    return render_template('overview.html', sections=dat)
 
 @app.route('/userfacts')
 @login_required

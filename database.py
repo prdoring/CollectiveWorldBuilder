@@ -11,14 +11,16 @@ import threading
 facts_db = TinyDB('facts_db.json')
 conversations_db = TinyDB('conversations_db.json')
 user_facts_db = TinyDB('user_facts_db.json')
+overview_db = TinyDB('overview_db.json')
 # Use tables for different types of data, e.g., conversations
 
 conversations_table = conversations_db.table('conversations')
 facts_table = facts_db.table('facts')
 user_facts_table = user_facts_db.table('user_facts')
 proper_nouns_table = facts_db.table('proper_nouns')
+overview_table = overview_db.table('overview')
 last_overview_fact_count = len(facts_table.all())
-max_fact_delta_for_overview_update = 20
+max_fact_delta_for_overview_update = 10
 
 categories_list = [
     "Overview",
@@ -32,6 +34,19 @@ categories_list = [
     "Outside Influences"
 ]
 
+init_category_count = {
+    "Overview":0,
+    "Neighborhoods":0,
+    "People":0,
+    "Society and Culture":0,
+    "Economy and Trade":0,
+    "Law and Order":0,
+    "Religion and Magic":0,
+    "Infrastructure and Technology":0,
+    "Outside Influences":0,
+    "Other":0
+}
+
 def fetch_context():
     # Fetch all records
     all_facts = facts_table.all()
@@ -42,6 +57,15 @@ def fetch_context():
     context += "\n".join([f"{fact['category']}: {fact['fact']}" for fact in all_facts])
     context += "\n\nKnown Proper Nouns:\n"
     context += "\n".join([f"{noun['word']}: {noun['definition']}" for noun in all_proper_nouns])
+
+    return context
+
+def fetch_cat_context(category):
+    CatQuery = Query()
+    category_entries = user_facts_table.search(CatQuery.category == category)
+    # Format as a string (customize this according to your needs)
+    context = "Known Facts about "+category+":\n"
+    context += "\n".join([f"{fact['category']}: {fact['fact']}" for fact in category_entries])
 
     return context
 
@@ -76,6 +100,8 @@ def print_facts_count_by_category():
     for category, count in category_counts.items():
         cat_counts += f"{category}: {count} \n"
         print(f"{category}: {count}")
+        if(init_category_count[category] == 0):
+            init_category_count[category] = count
     return cat_counts
 
 def update_conversation_history(conversation_id, message, response_text, messages_history):
@@ -93,3 +119,10 @@ def get_or_create_conversation(conversation_id):
         conversations_table.insert({'name': conversation_id, 'messages': []})
         return {'name': conversation_id, 'messages': []}
     return conversation[0]
+
+def update_overview_db(category, data):
+    cat = Query()
+    entry = overview_table.search(cat.category == category)
+    if entry:
+        overview_table.remove(cat.category == category)
+    overview_table.insert({'category': category, 'data': data})

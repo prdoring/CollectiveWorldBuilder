@@ -1,125 +1,119 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprehensive City Guide</title>
+    <title>Overview of Sections</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            padding-left: 200px; /* Space for the sidebar */
+            line-height: 1.6;
         }
-        .container {
-            width: 80%;
-            margin: auto;
+        h1, h2, h3, h4, h5, h6 {
+            margin: 20px 0;
+            padding-left: 10px;
+            font-weight: normal;
         }
         h1 {
-            color: #333;
+            font-size: 2.5em;
+            color: #FFD700; /* Gold */
         }
         h2 {
-            color: #666;
+            font-size: 2em;
+            color: #bb86fc; /* Purple */
         }
-        ul {
-            list-style-type: none;
+        h3, h4, h5, h6 {
+            color: #03dac6; /* Teal */
         }
-        li {
-            margin-bottom: 0.5em;
+        p, li {
+            font-size: 1.1em;
+            margin: 5px 10px;
+            max-width: 800px; /* Optimal line length for reading */
         }
-        .section {
-            margin-bottom: 2em;
+        .content-block {
+            border-left: 3px solid #03dac6;
+            margin: 10px;
+            padding: 10px 20px;
+        }
+        .introduction, .summary {
+            font-style: italic;
+            color: #b0bec5; /* Lighter gray for less emphasis */
+        }
+        .main-content {
+            font-weight: bold;
+            color: #ffffff; /* Brighter white for main content emphasis */
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #333;
+            margin: 20px 0;
+        }
+        .index {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 180px;
+            height: 100%;
+            background-color: #333;
+            overflow: auto;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .index a {
+            display: block;
+            color: #bb86fc;
+            text-decoration: none;
+            margin: 5px 0;
+            padding: 5px 10px;
+        }
+        .index a:hover {
+            text-decoration: underline;
+            background-color: #424242;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Comprehensive City Guide</h1>
-        
-        <div class="section">
-            <h2>Overview</h2>
-            <p>This guide provides a meticulous overview of a city thriving with arcanotech, historical richness, diverse neighborhoods, and the interplay of various cultures and economic sectors. Founded on a wellspring of arcane energy, this city has evolved into a hub for innovation, despite the challenges posed by its surroundings and internal dynamics.</p>
-        </div>
-        
-        <div class="section">
-            <h2>Infrastructure and Technology</h2>
-            <ul>
-                <li>Arcanotech runs homes, vehicles, and communications devices, powered by purified arcane water distributed throughout the city.</li>
-                <li>The city features a protective barrier influenced by arcanotech, safeguarding it against external threats.</li>
-                <li>Refined arcane water fuels everything from ferries to the arcane braces that maintain the stability of skyscrapers.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>Neighborhoods</h2>
-            <ul>
-                <li><b>Hightop:</b> Home to affluent corporate types, characterized by high-security measures.</li>
-                <li><b>Scraptop and The Docks:</b> Known for their rougher edges, these neighborhoods are bustling with trade during the day and become cautious zones at night.</li>
-                <li><b>Woodshed:</b> A blue-collar, tight-knit community fiercely resisting gentrification and known for its traditional values.</li>
-                <li><b>Scalboot:</b> Transformed from a tent community to an artsy, expensive neighborhood, it now hosts a vibrant TavernStomp scene.</li>
-                <li><b>Slipline:</b> Positioned between urban and suburban, with easy access to the city and farmlands, this neighborhood enjoys protection and affluence.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>Economy and Trade</h2>
-            <ul>
-                <li>Calofive stands at the forefront of arcanotech research and development, entwined with the city's government.</li>
-                <li>Worbor Bank, the sole banking institution, supports myriad businesses with its extensive network.</li>
-                <li>The city sustains a vibrant market scene by the docks, paramount for trade and daily commerce.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>Society and Culture</h2>
-            <ul>
-                <li>Arcano-luddites, holding traditionalist views against arcanotech, contribute indispensably during plant-related emergencies.</li>
-                <li>TavernStomp, evolving from a communal dance to a professional performance contradicts its original ethos, signaling social shift.</li>
-                <li>Residents exhibit a spectrum of perspectives towards the city's reliance on arcanotech, with Calofive at the epicenter of debate.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>Religion and Magic</h2>
-            <ul>
-                <li>Paladins in the city derive power from their oaths to entities like Calofive, diverging from traditional devotion to gods.</li>
-                <li>Magical practices are deeply integrated into the city's daily life, from protection to agriculture, facilitated by arcanotech.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>Law and Order</h2>
-            <ul>
-                <li>Corporate entities such as Calofive manifest their own law enforcement, parallel to the city's official system.</li>
-                <li>Neighborhoods like Scraptop and The Docks see different echelons of safety and legality, impacted by their industrial and economic roles.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>Notable Individuals</h2>
-            <ul>
-                <li><b>Pringle:</b> Known for his self-sustenance in the city's underbelly, scrounging in the sewers.</li>
-                <li><b>Sprangle:</b> A paladin for Calofive, embodying the fusion of corporate loyalty and magical martial prowess.</li>
-                <li><b>Thallow Goldshore:</b> A Paladin for Worbor Bank, juxtaposing his duty in Hightop with his residence in Woodshed, symbolizing the city's socio-economic diversity.</li>
-                <li><b>Residents</b> across diverse neighborhoods, each contributing to the multifaceted cultural, economic, and social landscape of the city.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>External and Internal Challenges</h2>
-            <ul>
-                <li>The reliance upon arcane energy and technology breeds both advancement and dependency, juxtaposing progressive reliance with inherent risks.</li>
-                <li>Socio-economic disparities between neighborhoods underscore challenges in governance and communal integration.</li>
-                <li>External threats from the wastes, mitigated by the city's barrier, continue to loom as a potential risk to stability and safety.</li>
-            </ul>
-        </div>
-        
-        <div class="section">
-            <h2>Education</h2>
-            <ul>
-                <li>Truunn University dominates as a beacon of higher education, shaping the future leadership and technocratic elite of the city.</li>
-                <li>Vocational and apprenticeship programs provide alternative avenues for residents to engage with the city's workforce demands.</li>
-            </ul>
-        </div>    
+    <div class="index">
+        <h3>Index</h3>
+        {% for section in sections %}
+            <a href="#{{ section.sectionTitle|replace(' ', '_') }}">{{ section.sectionTitle }}</a>
+        {% endfor %}
+    </div>
+    <div class="main-content">
+        <h1>Overview of Sections</h1>
+        {% for section in sections %}
+            <div class="content-block" id="{{ section.sectionTitle|replace(' ', '_') }}">
+                <h2>{{ section.sectionTitle }}</h2>
+                <p class="introduction">{{ section.sectionContent.introduction }}</p>
+                <p class="main-content">{{ section.sectionContent.mainContent }}</p>
+                <p class="summary">{{ section.sectionContent.summary }}</p>
+                <hr>
+                <h3>Subsections</h3>
+                {% for subsection in section.subsections %}
+                    <div class="content-block">
+                        <h4>{{ subsection.subsectionTitle }}</h4>
+                        <p class="introduction">{{ subsection.subsectionContent.introduction }}</p>
+                        <p class="main-content">{{ subsection.subsectionContent.mainContent }}</p>
+                        <p class="summary">{{ subsection.subsectionContent.summary }}</p>
+                        <hr>
+                    </div>
+                    {% for subsub in subsection.subsections %}
+                        <div class="content-block">
+                            <h5>{{ subsub.subsectionTitle }}</h5>
+                            <p class="introduction">{{ subsub.subsectionContent.introduction }}</p>
+                            <p class="main-content">{{ subsub.subsectionContent.mainContent }}</p>
+                            <p class="summary">{{ subsub.subsectionContent.summary }}</p>
+                            <hr>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endfor %}
     </div>
 </body>
 </html>
-```
