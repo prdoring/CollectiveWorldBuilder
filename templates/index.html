@@ -593,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
     hamburgerMenu.addEventListener('click', function() {
         conversationsSection.classList.toggle('collapsed');
     });
-    displayWelcomeMessage("<h2>Welcome!</h2><br/>To get started make a character and get to talking!  If you are looking for inspiration wait here and you will be given a list of the top things the interviewer wants to know!<br/>")
+    displayWelcomeMessage("<h2>Welcome!</h2><br/>To get started make a character and get to talking!  <br/><br/>If you are looking for inspiration wait here and you will be given a list of the top things the interviewer wants to know!<br/>")
     socket.emit('request_welcome_message',{});
 });
 

@@ -73,8 +73,6 @@ def logout():
 
 socketio = SocketIO(app)
 
-print("Current Fact Count: ", last_overview_fact_count)
-print_facts_count_by_category()
 
 
 # Read the initial system message from GPT_Prompt.txt and store it in a variable
@@ -124,13 +122,15 @@ def home():
     return render_template('index.html')
 
 @app.route('/overview')
+@login_required
 def overview():
     dat = []
     for category in categories_list:
         overviewQuery = Query()
         snc = overview_table.search(overviewQuery.category == category)
         if(snc):
-            dat.append(snc[0]['data']['wikiSection'])
+            print(snc[0]['time'])
+            dat.append({'data':snc[0]['data']['wikiSection'],'time':snc[0]['time']})
     return render_template('overview.html', sections=dat)
 
 @app.route('/userfacts')

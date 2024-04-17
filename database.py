@@ -7,6 +7,7 @@ import time
 import os
 import threading
 import summary_creator as sc
+from datetime import datetime
 
 # Initialize TinyDB and specify the database file
 facts_db = TinyDB('facts_db.json')
@@ -48,6 +49,9 @@ category_count = {
     "Other":0
 }
 init_category_count = category_count.copy()
+
+def current_date_time():
+    return datetime.now().strftime("%m/%d/%y %I:%M%p").lower()
 
 def fetch_context():
     # Fetch all records
@@ -136,4 +140,4 @@ def update_overview_db(category, data):
     entry = overview_table.search(cat.category == category)
     if entry:
         overview_table.remove(cat.category == category)
-    overview_table.insert({'category': category, 'data': data})
+    overview_table.insert({'category': category, 'time': current_date_time(), 'data': data})

@@ -125,6 +125,17 @@
         .index a:hover {
             text-decoration: underline;
         }
+
+        .updateTime {
+            color: darkgray;
+            font-size: 50%;
+            font-weight: 300;
+            font-style: italic;
+            margin-top: -10px;
+            margin-left: 3px;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 768px) {
             .index {
                 position: static; /* Change from fixed to static */
@@ -175,20 +186,21 @@
     <div class="index">
         <h3>Index</h3>
         {% for section in sections %}
-            <a href="#{{ section.sectionTitle|replace(' ', '_') }}">{{ section.sectionTitle }}</a>
+            <a href="#{{ section.data.sectionTitle|replace(' ', '_') }}">{{ section.data.sectionTitle }}</a>
         {% endfor %}
     </div>
     <div class="main-content" style="margin-left: 220px;">
         <div id="bannerimage"></div>
         <h1>City Overview</h1>
         {% for section in sections %}
-            <div class="content-block main" id="{{ section.sectionTitle|replace(' ', '_') }}">
-                <h2>{{ section.sectionTitle }}</h2>
-                <p class="introduction">{{ section.sectionContent.introduction }}</p>
-                <p class="summary">{{ section.sectionContent.summary }}</p>
-                <p class="main-content">{{ section.sectionContent.mainContent }}</p>
+            <div class="content-block main" id="{{ section.data.sectionTitle|replace(' ', '_') }}">
+                <h2>{{ section.data.sectionTitle }}</h2> 
+                <div class="updateTime">Last Updated: {{ section.time }}</div>
+                <p class="introduction">{{ section.data.sectionContent.introduction }}</p>
+                <p class="summary">{{ section.data.sectionContent.summary }}</p>
+                <p class="main-content">{{ section.data.sectionContent.mainContent }}</p>
                 <hr>
-                {% for subsection in section.subsections %}
+                {% for subsection in section.data.subsections %}
                     <div class="content-block">
                         <h4>{{ subsection.subsectionTitle }}</h4>
                         <p class="summary">{{ subsection.subsectionContent.summary }}</p>
