@@ -3,78 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overview of Sections</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.webp') }}">
+    <title>City Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        #bannerimage {
+            width: 100%;
+            background-image: url({{ url_for('static', filename='banner.png') }});
+            height:0;
+            padding-top: 14%; /* (img-height / img-width * container-width) */
+                /* (853 / 1280 * 100) */
+            max-height: 361px;
+            max-width:1708px;
+
+            background-position: center-top;
+            background-size:100%;
+            background-repeat:no-repeat;
+            border-bottom: 1px solid #ccc;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
+            font-family: 'Open Sans', sans-serif;
+            background-color: #fff;
+            color: #202020;
             margin: 0;
             padding: 0;
-            padding-left: 200px; /* Space for the sidebar */
-            line-height: 1.6;
         }
         h1, h2, h3, h4, h5, h6 {
-            margin: 20px 0;
-            padding-left: 10px;
-            font-weight: normal;
+            color: #202020;
+            margin: 10px 0;
         }
         h1 {
-            font-size: 2.5em;
-            color: #FFD700; /* Gold */
+            font-size: 24px;
+            font-weight: 600;
         }
         h2 {
-            font-size: 2em;
-            color: #bb86fc; /* Purple */
+            font-size: 20px;
+            font-weight: 600;
         }
         h3, h4, h5, h6 {
-            color: #03dac6; /* Teal */
+            font-weight: 600;
         }
         p, li {
-            font-size: 1.1em;
-            margin: 5px 10px;
-            max-width: 800px; /* Optimal line length for reading */
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 5px 0;
         }
         .content-block {
-            border-left: 3px solid #03dac6;
+            border-left: 3px solid #ccc;
             margin: 10px;
-            padding: 10px 20px;
+            padding: 10px;
         }
         .introduction, .summary {
+            color: #606060;
             font-style: italic;
-            color: #b0bec5; /* Lighter gray for less emphasis */
         }
         .main-content {
-            font-weight: bold;
-            color: #ffffff; /* Brighter white for main content emphasis */
+            font-weight: 400; /* Regular text weight for body content */
         }
         hr {
             border: none;
-            border-top: 1px solid #333;
+            border-top: 1px solid #ccc;
             margin: 20px 0;
         }
         .index {
             position: fixed;
             left: 0;
             top: 0;
-            width: 180px;
-            height: 100%;
-            background-color: #333;
-            overflow: auto;
-            padding: 10px;
+            width: 200px;
+            height: 100vh;
+            background-color: #f8f8f8;
+            border-right: 1px solid #ccc;
+            padding: 20px;
             box-sizing: border-box;
+            overflow: auto;
+        }
+        .index h3 {
+            font-size: 18px;
+            margin-top: 0;
         }
         .index a {
             display: block;
-            color: #bb86fc;
+            color: #007BFF;
             text-decoration: none;
-            margin: 5px 0;
-            padding: 5px 10px;
+            padding: 5px 0;
         }
         .index a:hover {
             text-decoration: underline;
-            background-color: #424242;
         }
+        @media (max-width: 768px) {
+            .index {
+                position: static; /* Change from fixed to static */
+                width: 100%;
+                height: auto;
+                overflow: hidden; /* Hide overflow */
+                border-right: none;
+                padding: 10px 0; /* Reduce padding */
+                text-align: center;
+                
+                border-bottom: 1px solid #ccc;
+            }
+
+            .index a {
+                display: inline-block;
+                color: #007BFF;
+                text-decoration: none;
+                padding: 5px 0;
+            }
+
+            .index a::after {
+                content: " |";
+            }
+            .index a::before {
+                content: "| ";
+            }
+            .main-content {
+                display:inline;
+                margin-left: 0; /* Remove margin */
+                padding: 10px; /* Add padding for spacing */
+            }
+            #bannerimage {
+                background-size: cover; /* Cover ensures the image fills the area well */
+            }
+            h1, h2, h3, h4, h5, h6 {
+                font-size: 90%; /* Reduce font size for headers on small screens */
+            }
+            p, li {
+                font-size: 14px; /* Smaller text on small screens */
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -84,8 +141,9 @@
             <a href="#{{ section.sectionTitle|replace(' ', '_') }}">{{ section.sectionTitle }}</a>
         {% endfor %}
     </div>
-    <div class="main-content">
-        <h1>Overview of Sections</h1>
+    <div class="main-content" style="margin-left: 220px;">
+        <div id="bannerimage"></div>
+        <h1>City Overview</h1>
         {% for section in sections %}
             <div class="content-block" id="{{ section.sectionTitle|replace(' ', '_') }}">
                 <h2>{{ section.sectionTitle }}</h2>
@@ -93,7 +151,6 @@
                 <p class="main-content">{{ section.sectionContent.mainContent }}</p>
                 <p class="summary">{{ section.sectionContent.summary }}</p>
                 <hr>
-                <h3>Subsections</h3>
                 {% for subsection in section.subsections %}
                     <div class="content-block">
                         <h4>{{ subsection.subsectionTitle }}</h4>

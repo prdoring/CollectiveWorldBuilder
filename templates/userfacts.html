@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.webp') }}">
     <title>User Facts</title>
     <style>
         body {
@@ -12,6 +13,9 @@
             margin: 0;
             padding: 20px;
             font-size: 16px;
+            
+            max-width:1750px;
+
         }
         h1 {
             color: #bb86fc;
@@ -32,9 +36,29 @@
         li {
             margin-bottom: 5px;
         }
+        #bannerimage {
+            width: 100%;
+            background-image: url({{ url_for('static', filename='banner.png') }});
+            height:0;
+            padding-top: 14%; /* (img-height / img-width * container-width) */
+                /* (853 / 1280 * 100) */
+            max-height: 361px;
+            max-width:1708px;
+
+            background-position: center-top;
+            background-size:100%;
+            background-repeat:no-repeat;
+            border-bottom: 1px solid #ccc;
+
+            background-color: transparent;
+            margin-bottom: 0px;
+            border-radius: 0px;
+            box-shadow: 0;
+        }
     </style>
 </head>
 <body>
+    <div id="bannerimage"></div>
     <h1>Your Contributions</h1>
     {% if categorized_facts %}
         {% for category, facts in categorized_facts.items() %}

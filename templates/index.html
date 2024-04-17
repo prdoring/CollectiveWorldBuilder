@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.webp') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collective World Builder</title>
@@ -47,7 +47,8 @@
         }
 
         /* Chat title styling */
-        .chatTitle {
+        #chatBanner {
+            display:inline-flex;
             font-size: 1.5em;
             margin: -20px 0 10px 0; /* Adjusted margin for alignment */
             z-index: 3;
@@ -56,7 +57,7 @@
             padding: 10px;
             border-radius: 10px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
-            text-align: center;
+            
         }
 
         #messages {
@@ -66,6 +67,11 @@
             margin-top:20px;
             margin-bottom: 0;
             flex-grow: 1;
+            
+            background-image: url({{ url_for('static', filename='icon.webp') }});
+            background-position: center;
+            background-size:80%;
+            background-repeat:no-repeat;
         }
         /* Message input area styling */
         .message-input {
@@ -226,6 +232,10 @@
         .hamburger-menu {
             margin-top: -10px;
             margin-left: -10px;
+            background-image: url({{ url_for('static', filename='banner.png') }});
+            background-position: center-top;
+            background-size:100%;
+            background-repeat:no-repeat;
         }
 
         .dot {
@@ -236,6 +246,16 @@
             background-color: white;
             animation: bounce 1.4s infinite both;
             margin: 0 4px;
+        }
+        #user_info{
+            display: block;
+            text-align: right;
+            font-size: 50%;
+            width: 50%;
+            border-left: black 1px solid;
+        }
+        .chatTitle{
+            width: 49%;
         }
 
         .dot:nth-child(1) { animation-delay: -0.32s; }
@@ -274,11 +294,15 @@
             }
 
             .hamburger-menu {
+                font-size: 26px;
                 margin-top: -10px;
-                text-align: center;
+                text-align: left;
+                -webkit-text-stroke-width: 3px;
+                -webkit-text-stroke-color: #21151b;
+                -webkit-text-stroke-width: 2px;
             }
         }
-
+  
 
 
         @keyframes popIn {
@@ -312,7 +336,20 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #555; /* Color of the handle on hover */
         }
+        #icon {
+            width: 100%;
+            background-image: url({{ url_for('static', filename='icon.webp') }});
+            height:0;
+            padding-top: 14%; /* (img-height / img-width * container-width) */
+                /* (853 / 1280 * 100) */
+            max-height: 361px;
+            max-width:1708px;
 
+            background-position: center-top;
+            background-size:100%;
+            background-repeat:no-repeat;
+            border-bottom: 1px solid #ccc;
+        }
 
 
     </style>
@@ -334,19 +371,25 @@
             <button type="submit">Create</button>
             <a href="/overview" target="_blank" class="external-link">Need Context? City Overview</a>
             <hr/>
-            <a href="/userfacts" target="_blank" class="external-link" id="your-contributions">You Have Contributed 0 Unique Pieces of Lore</a>
 
         </form>
     </div>
-    <div class="chat">
-        <div class="chatTitle" id="chatTitle"></div>
+    <div class="chat" id="chat">
+        <div id="chatBanner">
+            
+            <div class="chatTitle" id="chatTitle"></div>
+            <div id="user_info">
+                <a href="/userfacts" target="_blank" class="external-link" id="your-contributions">You Have Contributed 0 Unique Pieces of Lore</a><br/>
+                <a href="/overview" target="_blank" class="external-link">City Overview</a>
+            </div>
+        </div>
         <ul id="messages"></ul>
         <div id="typingIndicator" style="display: none; text-align: center; padding: 10px;">
             <div class="dot"></div>
             <div class="dot"></div>
             <div class="dot"></div>
         </div>
-        <div class="message-input">
+        <div class="message-input" id="message-input">
             <input type="text" id="messageInput" autocomplete="off" placeholder="Type a message..." disabled>
             <button class="btn btn-primary" onclick="sendMessage()" disabled>Send</button>
         </div>
@@ -363,6 +406,15 @@ document.getElementById('messageInput').addEventListener('keypress', function(e)
     }
 });
 var currentConversationId = null;
+
+document.getElementById('chat').addEventListener('click', function(e) {
+    document.querySelector('.conversations').classList.toggle('collapsed');
+});
+
+document.getElementById('message-input').addEventListener('click', function(e) {
+    document.querySelector('.conversations').classList.toggle('collapsed');
+});
+
 
 document.getElementById('newConversationForm').addEventListener('submit', function(e) {
     e.preventDefault();

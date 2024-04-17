@@ -8,6 +8,9 @@ from summary_creator import *
 load_dotenv()
 client = OpenAI()
 
+gpt4_model = "gpt-4-turbo"
+gpt3_model = "gpt-3.5-turbo-0125"
+
 # Read the initial system message from GPT_Prompt.txt and store it in a variable
 with open('GPT_Prompt.txt', 'r', encoding='utf-8') as file:
     initial_system_message_text = file.read().strip()
@@ -20,7 +23,7 @@ with open('Overview_Prompt.txt', 'r', encoding='utf-8') as file:
 def get_gpt_response(messages_for_gpt):
     """Get a response from the GPT model."""
     completion = client.chat.completions.create(
-        model="gpt-4-0125-preview",
+        model=gpt4_model,
         messages=messages_for_gpt
     )
     print(completion.usage)
@@ -29,7 +32,7 @@ def get_gpt_response(messages_for_gpt):
 def get_gpt3_response(messages_for_gpt):
     """Get a response from the GPT model."""
     completion = client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
+        model=gpt3_model,
         messages=messages_for_gpt
     )
     print(completion.usage)
@@ -53,12 +56,12 @@ def process_new_information(fact_response_json, user_id):
         print("New Info:", new_info)
         insert_unique_items(user_facts_table, new_info)
         insert_unique_items(proper_nouns_table, new_proper_nouns)
-        #start_update_overview()
+        print_facts_count_by_category()
 
 def get_gpt_json_response(messages_for_fact):
     """Get a response from the GPT model focused on facts."""
     fact_completion = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model=gpt4_model,
         response_format={"type": "json_object"},
         messages=messages_for_fact
     )

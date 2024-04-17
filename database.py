@@ -6,6 +6,7 @@ import json
 import time
 import os
 import threading
+import summary_creator as sc
 
 # Initialize TinyDB and specify the database file
 facts_db = TinyDB('facts_db.json')
@@ -34,7 +35,7 @@ categories_list = [
     "Outside Influences"
 ]
 
-init_category_count = {
+category_count = {
     "Overview":0,
     "Neighborhoods":0,
     "People":0,
@@ -46,6 +47,7 @@ init_category_count = {
     "Outside Influences":0,
     "Other":0
 }
+init_category_count = category_count.copy()
 
 def fetch_context():
     # Fetch all records
@@ -80,6 +82,8 @@ def print_facts_count_by_category():
     """
     Fetches all facts from the database, counts the number of facts in each category,
     and prints the counts, including 0 for categories without entries.
+
+    If the category delta is over threshold spin off category overview update.
     """
     # Initialize counts for all categories to 0
     category_counts = {category: 0 for category in categories_list}
@@ -99,9 +103,16 @@ def print_facts_count_by_category():
     cat_counts = ""
     for category, count in category_counts.items():
         cat_counts += f"{category}: {count} \n"
-        print(f"{category}: {count}")
+        category_count[category] = count
         if(init_category_count[category] == 0):
             init_category_count[category] = count
+
+        if(count - init_category_count[category]>max_fact_delta_for_overview_update):
+            print(f"{category}: {count} - UPDATING OVERVIEW")
+            sc.start_update_overview(category)
+            init_category_count[category] = count
+        else:
+            print(f"{category}: {count}")
     return cat_counts
 
 def update_conversation_history(conversation_id, message, response_text, messages_history):

@@ -114,7 +114,6 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     fact_response_thread.start()
 
     update_conversation_history(conversation_id, message, response_text, messages_history)
-    print_facts_count_by_category()
     return response_text
 
 @app.route('/')
@@ -132,7 +131,6 @@ def overview():
         snc = overview_table.search(overviewQuery.category == category)
         if(snc):
             dat.append(snc[0]['data']['wikiSection'])
-            print(dat)
     return render_template('overview.html', sections=dat)
 
 @app.route('/userfacts')
@@ -226,8 +224,6 @@ def request_welcome_message(data):
      messages_for_welcome = prepare_messages_for_welcome_message(context)
      response_text = get_gpt_response(messages_for_welcome)
      emit('welcome_message', {'message': response_text})
-
-start_update_overview()
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=6969)
