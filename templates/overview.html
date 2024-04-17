@@ -15,7 +15,7 @@
                 /* (853 / 1280 * 100) */
             max-height: 361px;
             max-width:1708px;
-
+    
             background-position: center-top;
             background-size:100%;
             background-repeat:no-repeat;
@@ -23,14 +23,17 @@
         }
         body {
             font-family: 'Open Sans', sans-serif;
-            background-color: #fff;
-            color: #202020;
+            background-color: #202020; /* Dark background color */
+            color: #f8f8f8; /* Light text color */
             margin: 0;
             padding: 0;
         }
         h1, h2, h3, h4, h5, h6 {
-            color: #202020;
+            color: #f8f8f8; /* Light text color */
             margin: 10px 0;
+        }
+        h4 {
+            margin-left: -5px;
         }
         h1 {
             font-size: 24px;
@@ -49,21 +52,51 @@
             margin: 5px 0;
         }
         .content-block {
-            border-left: 3px solid #ccc;
             margin: 10px;
             padding: 10px;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            background-color: #333; /* Darker background color for content blocks */
         }
+
+        .main {
+            border-left: 3px solid #ccc;
+            padding-top:10px;
+            padding-bottom:10px;
+        }
+
         .introduction, .summary {
-            color: #606060;
+            color: #ccc; /* Lighter text color for summaries */
             font-style: italic;
         }
+
+        .introduction {
+            font-size: 80%;
+            margin-bottom: 20px;
+        }
+
+        .summary, .main-content {
+            margin-left: 5px;
+        }
+        
+        .summary{
+            border-left: 2px solid #ccc;
+            padding-left: 10px;
+            margin-bottom: 10px;
+            margin-left:20px;
+        }
+
         .main-content {
             font-weight: 400; /* Regular text weight for body content */
+            padding-left: 10px;
         }
         hr {
             border: none;
             border-top: 1px solid #ccc;
             margin: 20px 0;
+            border-color: #777; /* Darker border color for HR */
+            margin-left:12px;
+            margin-right:10px;
         }
         .index {
             position: fixed;
@@ -71,7 +104,7 @@
             top: 0;
             width: 200px;
             height: 100vh;
-            background-color: #f8f8f8;
+            background-color: #333; /* Darker background color for index */
             border-right: 1px solid #ccc;
             padding: 20px;
             box-sizing: border-box;
@@ -80,12 +113,14 @@
         .index h3 {
             font-size: 18px;
             margin-top: 0;
+            color: #f8f8f8; /* Light text color for index headers */
         }
         .index a {
             display: block;
             color: #007BFF;
             text-decoration: none;
             padding: 5px 0;
+            color: #f8f8f8; /* Light text color for index links */
         }
         .index a:hover {
             text-decoration: underline;
@@ -102,14 +137,15 @@
                 
                 border-bottom: 1px solid #ccc;
             }
-
+    
             .index a {
                 display: inline-block;
                 color: #007BFF;
                 text-decoration: none;
                 padding: 5px 0;
+                color: #f8f8f8; /* Light text color for index links */
             }
-
+    
             .index a::after {
                 content: " |";
             }
@@ -119,7 +155,7 @@
             .main-content {
                 display:inline;
                 margin-left: 0; /* Remove margin */
-                padding: 10px; /* Add padding for spacing */
+                padding-left: 0;
             }
             #bannerimage {
                 background-size: cover; /* Cover ensures the image fills the area well */
@@ -131,8 +167,9 @@
                 font-size: 14px; /* Smaller text on small screens */
             }
         }
-
+    
     </style>
+    
 </head>
 <body>
     <div class="index">
@@ -145,26 +182,24 @@
         <div id="bannerimage"></div>
         <h1>City Overview</h1>
         {% for section in sections %}
-            <div class="content-block" id="{{ section.sectionTitle|replace(' ', '_') }}">
+            <div class="content-block main" id="{{ section.sectionTitle|replace(' ', '_') }}">
                 <h2>{{ section.sectionTitle }}</h2>
                 <p class="introduction">{{ section.sectionContent.introduction }}</p>
-                <p class="main-content">{{ section.sectionContent.mainContent }}</p>
                 <p class="summary">{{ section.sectionContent.summary }}</p>
+                <p class="main-content">{{ section.sectionContent.mainContent }}</p>
                 <hr>
                 {% for subsection in section.subsections %}
                     <div class="content-block">
                         <h4>{{ subsection.subsectionTitle }}</h4>
-                        <p class="introduction">{{ subsection.subsectionContent.introduction }}</p>
-                        <p class="main-content">{{ subsection.subsectionContent.mainContent }}</p>
                         <p class="summary">{{ subsection.subsectionContent.summary }}</p>
+                        <p class="main-content">{{ subsection.subsectionContent.mainContent }}</p>
                         <hr>
                     </div>
                     {% for subsub in subsection.subsections %}
                         <div class="content-block">
                             <h5>{{ subsub.subsectionTitle }}</h5>
-                            <p class="introduction">{{ subsub.subsectionContent.introduction }}</p>
-                            <p class="main-content">{{ subsub.subsectionContent.mainContent }}</p>
                             <p class="summary">{{ subsub.subsectionContent.summary }}</p>
+                            <p class="main-content">{{ subsub.subsectionContent.mainContent }}</p>
                             <hr>
                         </div>
                     {% endfor %}
