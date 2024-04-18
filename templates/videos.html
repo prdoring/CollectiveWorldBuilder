@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video List</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #202124; /* Dark background color */
+            color: #fff; /* Light text color */
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .video-grid {
+            display: none; /* Initially hide the video grids */
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            padding-bottom: 20px;
+        }
+        .video-button {
+            padding: 10px;
+            background-color: #282c34; /* Darker button background color */
+            color: #fff; /* Light text color */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border-radius: 5px;
+            outline: none; /* Remove default focus outline */
+        }
+        .video-button:hover {
+            background-color: #555; /* Darker button background color on hover */
+        }
+        .section-header {
+            cursor: pointer;
+            color: #AAA; /* Lighter text color */
+            margin-bottom: 10px;
+        }
+        .section-header h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% for prefix, media in media_categories.items() %}
+        <div onclick="toggleVisibility('{{ prefix }}')" class="section-header">
+            <h2>{{ prefix|capitalize }}</h2>
+        </div>
+        <div id="{{ prefix }}" class="video-grid">
+            {% for file in media %}
+            <button class="video-button" onclick="selectMedia('{{ file }}')">
+                {{ file.split('-', 1)[-1].rsplit('.', 1)[0] }}
+            </button>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        var socket = io();
+
+        function selectMedia(fileName) {
+            // Emit the 'media selected' event for both videos and images
+            socket.emit('media selected', fileName);
+        }
+
+        function toggleVisibility(prefix) {
+            var section = document.getElementById(prefix);
+            if (section.style.display === "none" || section.style.display === '') {
+                section.style.display = "grid";
+            } else {
+                section.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -57,6 +57,10 @@
             padding: 10px;
             border-radius: 10px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            background-image: url(/static/banner.png);
+            background-size: 100%;
+            background-repeat: no-repeat;
+            background-position: bottom;
             
         }
 
@@ -232,10 +236,6 @@
         .hamburger-menu {
             margin-top: -10px;
             margin-left: -10px;
-            background-image: url({{ url_for('static', filename='banner.png') }});
-            background-position: center-top;
-            background-size:100%;
-            background-repeat:no-repeat;
         }
 
         .dot {
@@ -250,9 +250,16 @@
         #user_info{
             display: block;
             text-align: right;
-            font-size: 50%;
+            font-size: 70%;
             width: 50%;
             border-left: black 1px solid;
+            margin-top: -3px;
+        }
+        #user_info a{
+            color: #00ffde;
+            font-weight: bold;
+            -webkit-text-stroke-color: #21151b;
+            -webkit-text-stroke-width: 1px;
         }
         .chatTitle{
             width: 49%;
@@ -379,7 +386,7 @@
             
             <div class="chatTitle" id="chatTitle"></div>
             <div id="user_info">
-                <a href="/userfacts" target="_blank" class="external-link" id="your-contributions">You Have Contributed 0 Unique Pieces of Lore</a><br/>
+                <a href="/userfacts" target="_blank" class="external-link" id="your-contributions">0 Contributions!</a><br/>
                 <a href="/overview" target="_blank" class="external-link">City Overview</a>
             </div>
         </div>
@@ -452,7 +459,7 @@ socket.on('conversation_created', function(data) {
 });
 
 socket.on('user_fact_count', function(data) {
-    document.getElementById("your-contributions").innerHTML = "You Have Contributed "+data.count+" Unique Pieces of Lore"
+    document.getElementById("your-contributions").innerHTML = data.count+" Contributions!";
 });
 
 

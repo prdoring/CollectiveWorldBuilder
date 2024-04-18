@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1f1f1f; /* Dark background color */
+            color: #fff; /* Light text color */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #333; /* Darker container background color */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Box shadow for depth */
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            text-align: center;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #555; /* Dark input background color */
+            color: #fff; /* Light text color */
+            cursor: pointer;
+        }
+        select {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #555; /* Dark input background color */
+            color: #fff; /* Light text color */
+            cursor: pointer;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff; /* Button background color */
+            color: #fff; /* Light text color */
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3; /* Darker button background color on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Player Upload</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
+            <input type="file" name="file" id="file" accept=".jpg, .jpeg, .png, .webp, .mp4">
+            <br>
+            <label for="name">Select your name:</label>
+            <select name="name" id="name" required>
+                <option value="" disabled selected>Select your name</option>
+                <option value="Mark">Mark</option>
+                <option value="JT">JT</option>
+                <option value="Steve">Steve</option>
+                <option value="Ben">Ben</option>
+                <option value="Muzz">Muzz</option>
+                <option value="Pat">Pat</option>
+            </select>
+            <br>
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+
+    <script>
+        // Function to get the stored name from localStorage
+        function getStoredName() {
+            return localStorage.getItem('selectedName');
+        }
+
+        // Function to set the selected name in localStorage
+        function setStoredName(name) {
+            localStorage.setItem('selectedName', name);
+        }
+
+        // Function to restore the selected name from localStorage
+        function restoreSelectedName() {
+            var storedName = getStoredName();
+            if (storedName) {
+                document.getElementById('name').value = storedName;
+            }
+        }
+
+        // Restore the selected name when the page loads
+        document.addEventListener('DOMContentLoaded', restoreSelectedName);
+
+        // Add event listener to the form submission
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            // Get the selected name
+            var selectedName = document.getElementById('name').value;
+            // If no name is selected, prevent form submission
+            if (!selectedName) {
+                event.preventDefault();
+                alert('Please select your name.');
+            } else {
+                // Store the selected name
+                setStoredName(selectedName);
+            }
+        });
+    </script>
+</body>
+</html>

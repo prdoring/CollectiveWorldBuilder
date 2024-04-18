@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DND Backdrop</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: black;
+        }
+        #mediaContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #mediaContainer video, #mediaContainer img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="mediaContainer"></div> <!-- Container for video or image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+        socket.on('switch media', function(mediaName) {
+            var mediaContainer = document.getElementById('mediaContainer');
+            mediaContainer.innerHTML = ''; // Clear the container
+
+            // Check if the media is a video or an image
+            if (mediaName.endsWith('.mp4')) {
+                // Create and append video element
+                var video = document.createElement('video');
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.playsInline = true; // Note: The correct property is playsInline, not playsinline
+                video.controls = false;
+                // Append source
+                var source = document.createElement('source');
+                source.src = '/static/' + mediaName;
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                mediaContainer.appendChild(video);
+            } else {
+                // Create and append image element
+                var img = document.createElement('img');
+                img.src = '/static/' + mediaName;
+                mediaContainer.appendChild(img);
+            }
+        });
+    </script>
+</body>
+</html>
