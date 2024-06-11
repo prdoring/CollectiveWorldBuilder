@@ -8,8 +8,8 @@ from summary_creator import *
 load_dotenv()
 client = OpenAI()
 
-gpt4_model = "gpt-4-turbo"
-gpt3_model = "gpt-3.5-turbo-0125"
+gpt4_model = "gpt-4o"
+gpt3_model = "gpt-4o"
 
 # Read the initial system message from GPT_Prompt.txt and store it in a variable
 with open('GPT_Prompt.txt', 'r', encoding='utf-8') as file:

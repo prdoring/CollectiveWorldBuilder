@@ -1,5 +1,5 @@
-from flask import Flask, redirect, url_for, session, render_template, request
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask import Flask, redirect, url_for, session, render_template, request, current_app
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from authlib.integrations.flask_client import OAuth
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from tinydb import Query
@@ -9,17 +9,13 @@ import threading
 from summary_creator import *
 from database import *
 from gpt import *
-
+from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
+from functools import wraps
 
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET')
-app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
-app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
-app.config['GOOGLE_DISCOVERY_URL'] = (
-    "https://accounts.google.com/.well-known/openid-configuration"
-)
+app.config.from_object(DevelopmentConfig if os.getenv('FLASK_ENV') == 'development' else ProductionConfig)
 
 # Flask-Login setup
 login_manager = LoginManager(app)
@@ -43,10 +39,37 @@ class User(UserMixin):
     pass
 
 @login_manager.user_loader
-def user_loader(email):
-    user = User()
-    user.id = email
-    return user
+def load_user(user_id):
+    # Simulate loading a user by ID
+    if app.config['ENV'] == 'development':
+        user = User()
+        user.id = user_id
+        return user
+    else:
+        user_data = get_user_by_id(user_id)  # Replace with your data retrieval logic
+        if user_data:
+            user = User()
+            user.id = user_data['id']
+            return user
+        return None
+
+# Custom local login required decorator
+def local_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_app.config['ENV'] == 'development':
+            mock_login()
+        else:
+            if not current_user.is_authenticated:
+                return login_manager.unauthorized()
+        return f(*args, **kwargs)
+    return decorated_function
+
+def mock_login():
+    if not current_user.is_authenticated:
+        user = User()
+        user.id = 'mockuser@example.com'  # Mock user ID or email
+        login_user(user)
 
 # Google OAuth login route
 @app.route('/login')
@@ -65,15 +88,12 @@ def authorize():
     return redirect(url_for('home'))
 
 @app.route('/logout')
-@login_required
+@local_login_required
 def logout():
     logout_user()
     return redirect(url_for('home'))
 
-
 socketio = SocketIO(app)
-
-
 
 # Read the initial system message from GPT_Prompt.txt and store it in a variable
 with open('GPT_Prompt.txt', 'r', encoding='utf-8') as file:
@@ -115,14 +135,14 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     return response_text
 
 @app.route('/')
-@login_required
+@local_login_required
 def home():
     print(f"User {current_user.id} accessed the home page.")
     print("Entries For ",current_user.id, ": ", count_user_entries(current_user.id))
     return render_template('index.html')
 
 @app.route('/overview')
-@login_required
+@local_login_required
 def overview():
     dat = []
     for category in categories_list:
@@ -134,7 +154,7 @@ def overview():
     return render_template('overview.html', sections=dat)
 
 @app.route('/userfacts')
-@login_required
+@local_login_required
 def user_facts():
     all_facts = user_facts_table.all()
     UserQuery = Query()
@@ -149,15 +169,12 @@ def user_facts():
         categorized_facts[category].append(fact['fact'])
     return render_template('userfacts.html', categorized_facts=categorized_facts)
 
-
 @socketio.on('connect')
 def on_connect():
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
-    # Emit the existing conversation names to the connected client
     User = Query()
     filtered_conversations = [conversation for conversation in conversations_table.search(User.user == current_user.id)]
-    # Extract 'name' from each filtered conversation
     existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
     emit('existing_conversations', existing_conversations)
     emit('user_fact_count', {'count': count_user_entries(current_user.id)})
@@ -168,11 +185,9 @@ def handle_create_conversation(data):
         return False  # Or handle appropriately
     name = data['name']
     Conversation = Query()
-    # Check if the conversation already exists
     if not conversations_table.search(Conversation.name == name):
-        # Insert new conversation if it doesn't exist
-        welcome_message = {"sender": "assistant", "text": "Hello "+name+"! Please introduce yourself, let me know who you are, what you do etc, or just say hello! \n Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have) if you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
-        conversations_table.insert({'name': name, 'messages': [welcome_message], 'user':current_user.id})
+        welcome_message = {"sender": "assistant", "text": f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
+        conversations_table.insert({'name': name, 'messages': [welcome_message], 'user': current_user.id})
         emit('conversation_created_all', {'name': name}, broadcast=True)
         emit('conversation_created', {'name': name})
 
@@ -183,19 +198,14 @@ def handle_send_message(data):
     message = {'text': data['message'], 'sender': 'user'}
     conversation_id = data['conversation_id']
     Conversation = Query()
-    # Append the message to the conversation's message list
     conversation = conversations_table.search(Conversation.name == conversation_id)
     if conversation:
-        # Ensure there's only one conversation with the given name
         conversation = conversation[0]
-        # Update the conversation record with the new message list
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
         emit('user_fact_count', {'count': count_user_entries(current_user.id)})
-        
-        res =  {'text': message_gpt(message['text'], conversation_id, user_id = current_user.id), 'sender': 'system'}
+
+        res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id), 'sender': 'system'}
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
-    
-        # Optionally handle server response similarly
 
 @socketio.on('join_conversation')
 def handle_join_conversation(data):
@@ -206,9 +216,7 @@ def handle_join_conversation(data):
     Conversation = Query()
     conversation = conversations_table.search(Conversation.name == conversation_id)
     if conversation:
-        # Send back the conversation's history
-        emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation[0]['messages'], 'user':current_user.id})
-    
+        emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation[0]['messages'], 'user': current_user.id})
 
 @socketio.on('leave_conversation')
 def handle_leave_conversation(data):
@@ -218,12 +226,12 @@ def handle_leave_conversation(data):
 
 @socketio.on('request_welcome_message')
 def request_welcome_message(data):
-     if not current_user.is_authenticated:
+    if not current_user.is_authenticated:
         return False  # Or handle appropriately
-     context = fetch_context()
-     messages_for_welcome = prepare_messages_for_welcome_message(context)
-     response_text = get_gpt_response(messages_for_welcome)
-     emit('welcome_message', {'message': response_text})
+    context = fetch_context()
+    messages_for_welcome = prepare_messages_for_welcome_message(context)
+    response_text = get_gpt_response(messages_for_welcome)
+    emit('welcome_message', {'message': response_text})
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=6969)
