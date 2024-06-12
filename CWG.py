@@ -179,6 +179,8 @@ database_agent_name = "DATABASE"
 def on_connect():
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
+    
+    dbs = init_dbs()
     User = Query()
     filtered_conversations = [conversation for conversation in dbs["conversations_table"].search(User.user == current_user.id)]
     existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
@@ -218,10 +220,10 @@ def handle_send_message(data):
     if conversation:
         conversation = conversation[0]
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
-        emit('user_fact_count', {'count': count_user_entries(current_user.id)})
 
         res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name)), 'sender': 'system'}
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
+        emit('user_fact_count', {'count': count_user_entries(current_user.id)})
 
 @socketio.on('join_conversation')
 def handle_join_conversation(data):
@@ -229,6 +231,8 @@ def handle_join_conversation(data):
         return False  # Or handle appropriately
     conversation_id = data['conversation_id']
     join_room(conversation_id)
+    
+    dbs = init_dbs()
     Conversation = Query()
     conversation = dbs["conversations_table"].search(Conversation.name == conversation_id)
     if conversation:
