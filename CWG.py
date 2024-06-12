@@ -40,18 +40,9 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Simulate loading a user by ID
-    if app.config['ENV'] == 'development':
-        user = User()
-        user.id = user_id
-        return user
-    else:
-        user_data = get_user_by_id(user_id)  # Replace with your data retrieval logic
-        if user_data:
-            user = User()
-            user.id = user_data['id']
-            return user
-        return None
+    user = User()
+    user.id = user_id
+    return user
 
 # Custom local login required decorator
 def local_login_required(f):
