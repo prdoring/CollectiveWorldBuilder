@@ -188,6 +188,7 @@
         {% for section in sections %}
             <a href="#{{ section.data.sectionTitle|replace(' ', '_') }}">{{ section.data.sectionTitle }}</a>
         {% endfor %}
+            <a href="#propernouns">Proper Nouns</a>
     </div>
     <div class="main-content" style="margin-left: 220px;">
         <div id="bannerimage"></div>
@@ -218,6 +219,18 @@
                 {% endfor %}
             </div>
         {% endfor %}
+
+            <div class="content-block main" id="propernouns">
+                <h2>Proper Nouns</h2> 
+                <hr>
+                {% for noun in nouns %}
+                    <div class="content-block">
+                        <h4>{{ noun.word }}</h4>
+                        <p class="summary">{{ noun.definition }}</p>
+                        <hr>
+                    </div>  
+                {% endfor %}
+            </div>
     </div>
 </body>
 </html>

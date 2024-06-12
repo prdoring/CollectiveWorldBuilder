@@ -100,9 +100,9 @@ with open('GPT_Prompt.txt', 'r', encoding='utf-8') as file:
     initial_system_message_text = file.read().strip()
 with open('Fact_Prompt.txt', 'r', encoding='utf-8') as file:
     fact_message_text = file.read().strip()
-
+print_facts_count_by_category()
 # Function to count the number of entries for a specific user
-def count_user_entries(user_name, table=user_facts_table):
+def count_user_entries(user_name, table=dbs["user_facts_table"]):
     UserQuery = Query()
     # Search for entries where the 'user' field matches the given username
     user_entries = table.search(UserQuery.user == user_name)
@@ -147,19 +147,30 @@ def overview():
     dat = []
     for category in categories_list:
         overviewQuery = Query()
-        snc = overview_table.search(overviewQuery.category == category)
+        snc = dbs["overview_table"].search(overviewQuery.category == category)
         if(snc):
             print(snc[0]['time'])
             dat.append({'data':snc[0]['data']['wikiSection'],'time':snc[0]['time']})
-    return render_template('overview.html', sections=dat)
+    
+    all_proper_nouns = dbs['proper_nouns_table'].all()
+    
+    unique_sorted_proper_nouns = []
+    seen_words = set()
+
+    for noun in sorted(all_proper_nouns, key=lambda x: x['word']):
+        if noun['word'] not in seen_words:
+            unique_sorted_proper_nouns.append(noun)
+            seen_words.add(noun['word'])
+            
+    return render_template('overview.html', sections=dat, nouns=unique_sorted_proper_nouns)
 
 @app.route('/userfacts')
 @local_login_required
 def user_facts():
-    all_facts = user_facts_table.all()
+    all_facts = dbs["user_facts_table"].all()
     UserQuery = Query()
     # Search for entries where the 'user' field matches the given username
-    user_entries = user_facts_table.search(UserQuery.user == current_user.id)
+    user_entries = dbs["user_facts_table"].search(UserQuery.user == current_user.id)
     all_facts = user_entries
     categorized_facts = {}
     for fact in all_facts:
@@ -174,7 +185,7 @@ def on_connect():
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
     User = Query()
-    filtered_conversations = [conversation for conversation in conversations_table.search(User.user == current_user.id)]
+    filtered_conversations = [conversation for conversation in dbs["conversations_table"].search(User.user == current_user.id)]
     existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
     emit('existing_conversations', existing_conversations)
     emit('user_fact_count', {'count': count_user_entries(current_user.id)})
@@ -185,9 +196,9 @@ def handle_create_conversation(data):
         return False  # Or handle appropriately
     name = data['name']
     Conversation = Query()
-    if not conversations_table.search(Conversation.name == name):
+    if not dbs["conversations_table"].search(Conversation.name == name):
         welcome_message = {"sender": "assistant", "text": f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
-        conversations_table.insert({'name': name, 'messages': [welcome_message], 'user': current_user.id})
+        dbs["conversations_table"].insert({'name': name, 'messages': [welcome_message], 'user': current_user.id})
         emit('conversation_created_all', {'name': name}, broadcast=True)
         emit('conversation_created', {'name': name})
 
@@ -198,7 +209,7 @@ def handle_send_message(data):
     message = {'text': data['message'], 'sender': 'user'}
     conversation_id = data['conversation_id']
     Conversation = Query()
-    conversation = conversations_table.search(Conversation.name == conversation_id)
+    conversation = dbs["conversations_table"].search(Conversation.name == conversation_id)
     if conversation:
         conversation = conversation[0]
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
@@ -214,7 +225,7 @@ def handle_join_conversation(data):
     conversation_id = data['conversation_id']
     join_room(conversation_id)
     Conversation = Query()
-    conversation = conversations_table.search(Conversation.name == conversation_id)
+    conversation = dbs["conversations_table"].search(Conversation.name == conversation_id)
     if conversation:
         emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation[0]['messages'], 'user': current_user.id})
 
@@ -235,3 +246,5 @@ def request_welcome_message(data):
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=6969)
+    
+

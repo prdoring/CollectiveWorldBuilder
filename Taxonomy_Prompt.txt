@@ -1,0 +1,5 @@
+Based on the given facts provided in this database about the given category of this fictional city, please provide a JSON list of subsections in which to split the information for wiki taxonomy, base these sub categories on the data provided:
+
+the output should be formatted as such
+
+{category_name:[subcat1, subcat2, ...]}
