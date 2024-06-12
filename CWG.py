@@ -109,7 +109,7 @@ def count_user_entries(user_name, table=dbs["user_facts_table"]):
     # Return the count of entries
     return len(user_entries)
 
-def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system"):
+def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
     conversation = get_or_create_conversation(conversation_id)
     context = fetch_context()
@@ -127,9 +127,10 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
 
     response_text = get_gpt_response(messages_for_gpt)
 
-    # Call get_fact_response on a separate thread
-    fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
-    fact_response_thread.start()
+    # Call get_fact_response on a separate thread unless it is disabled
+    if(not disable_canon):
+        fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
+        fact_response_thread.start()
 
     update_conversation_history(conversation_id, message, response_text, messages_history)
     return response_text
@@ -181,6 +182,7 @@ def user_facts():
         categorized_facts[category].append(fact['fact'])
     return render_template('userfacts.html', categorized_facts=categorized_facts)
 
+database_agent_name = "DATABASE"
 @socketio.on('connect')
 def on_connect():
     if not current_user.is_authenticated:
@@ -188,6 +190,16 @@ def on_connect():
     User = Query()
     filtered_conversations = [conversation for conversation in dbs["conversations_table"].search(User.user == current_user.id)]
     existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
+
+    # Check if any conversation has the name "DATABASE" - This is used for the non content creation talking to the DB
+    has_database_conversation = any(conversation['name'] == database_agent_name for conversation in filtered_conversations)
+    if(not has_database_conversation):
+        print("creating db agent")
+        welcome_message = {"sender": "assistant", "text": f"I am an agent for you to communicate with the database without generating canon, please use me to ask anything about this world."}
+        dbs["conversations_table"].insert({'name': database_agent_name, 'messages': [welcome_message], 'user': current_user.id})
+        filtered_conversations = [conversation for conversation in dbs["conversations_table"].search(User.user == current_user.id)]
+        existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
+
     emit('existing_conversations', existing_conversations)
     emit('user_fact_count', {'count': count_user_entries(current_user.id)})
 
@@ -216,7 +228,7 @@ def handle_send_message(data):
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
         emit('user_fact_count', {'count': count_user_entries(current_user.id)})
 
-        res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id), 'sender': 'system'}
+        res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name)), 'sender': 'system'}
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
 
 @socketio.on('join_conversation')

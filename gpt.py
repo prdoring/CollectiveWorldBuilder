@@ -51,13 +51,13 @@ def process_new_information(fact_response_json, user_id):
     new_proper_nouns = fact_response_json.get('new_proper_nouns', [])
     if new_info or new_proper_nouns:
         print("New Proper Nouns:", new_proper_nouns)
-        insert_unique_items(dbs["facts_table"], new_info)
+        insert_unique_items("facts_table", new_info)
         for info in new_info:
             info["user"] = user_id
         
         print("New Info:", new_info)
-        insert_unique_items(dbs["user_facts_table"], new_info)
-        insert_unique_items(dbs["proper_nouns_table"], new_proper_nouns)
+        insert_unique_items("user_facts_table", new_info)
+        insert_unique_items("proper_nouns_table", new_proper_nouns)
         print_facts_count_by_category()
 
 def get_gpt_json_response(messages_for_fact):

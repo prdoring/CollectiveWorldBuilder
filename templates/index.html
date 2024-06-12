@@ -405,6 +405,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 var socket = io();
 document.getElementById('messageInput').addEventListener('keypress', function(e) {
@@ -548,7 +549,7 @@ function displayMessage(messageData, senderOverride) {
 
     var newMessage = document.createElement('div');
     // Adjust this line to use messageData.text
-    newMessage.textContent = messageData.text || messageData; // Fallback to messageData if .text is not available
+    newMessage.innerHTML = marked.parse(messageData.text || messageData); // Fallback to messageData if .text is not available
     newMessage.classList.add('message-bubble');
     // Use senderOverride if provided, else fall back to messageData.sender
     var sender = senderOverride || messageData.sender;

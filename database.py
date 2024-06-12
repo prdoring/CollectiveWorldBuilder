@@ -39,8 +39,7 @@ def init_dbs():
 
 dbs = init_dbs()
 last_overview_fact_count = len(dbs['facts_table'].all())
-max_fact_delta_for_overview_update = 10
-max_fact_delta_for_subcat = 10
+max_fact_delta_for_overview_update = 5
 
 categories_list = [
     "Overview",
@@ -123,7 +122,7 @@ def print_facts_count_by_category():
         if init_category_count[category] == 0:
             init_category_count[category] = count
 
-        if False:#count - init_category_count[category] > max_fact_delta_for_overview_update:
+        if count - init_category_count[category] > max_fact_delta_for_overview_update:
             print(f"{category}: {count} - UPDATING OVERVIEW")
             sc.start_update_overview(category)
             init_category_count[category] = count
