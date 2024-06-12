@@ -146,6 +146,7 @@ def home():
 def overview():
     dat = []
     for category in categories_list:
+        dbs = init_dbs()
         overviewQuery = Query()
         snc = dbs["overview_table"].search(overviewQuery.category == category)
         if(snc):
@@ -161,7 +162,7 @@ def overview():
         if noun['word'] not in seen_words:
             unique_sorted_proper_nouns.append(noun)
             seen_words.add(noun['word'])
-            
+
     return render_template('overview.html', sections=dat, nouns=unique_sorted_proper_nouns)
 
 @app.route('/userfacts')

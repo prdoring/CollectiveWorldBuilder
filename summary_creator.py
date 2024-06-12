@@ -7,13 +7,17 @@ def call_update_overview(category):
     taxonomy = call_update_taxonomy(category, context)
     messages_for_overview = prepare_messages_for_overview(context, category, taxonomy)
     response_text = get_gpt_json_response(messages_for_overview)
-    print(response_text)
     db.update_overview_db(category, response_text)
     print(category," Overview Updated")
 
 def prepare_messages_for_overview(context, category="", taxonomy=""):
+    
+    overviewQuery = Query()
+    overview = dbs["overview_table"].search(overviewQuery.category == category)
+
     messages_for_overview = [
         {"role": "system", "content": context },
+        {"role": "system", "content": "This is the current wiki page to be updated" + str(overview) },
         {"role": "user", "content": "This Wiki section is about "+ category +" "+overview_message_text+ "\n Use the following taxonomy to structure the information"+str(taxonomy)}
     ]
     return messages_for_overview

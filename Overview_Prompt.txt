@@ -1,4 +1,6 @@
-Based on the provided information about the given category of this fictional city, please provide a comprehensive overview utilizing all of the available information using the following JSON prototype to populate this section of a wiki about the city:
+Based on the provided information about the given category of this fictional city, 
+please provide update the provided wiki providing a comprehensive overview utilizing all of the available information using the following JSON prototype to populate this section of a wiki about the city
+The sectionTitle, introduction, mainContent and summary fields will be displayed directly on the wiki, please ensure these fields are structured in plaintext, please generate more nested subsections if additional detail is needed:
 
 {
   "wikiSection": {
@@ -16,7 +18,7 @@ Based on the provided information about the given category of this fictional cit
           "mainContent": "In-depth exploration of various ancient cultures, their contributions, and their significance.",
           "summary": "Summary of key points about ancient history."
         },
-        "subsections": []
+        "subsections": [...]
       },
       {
         "subsectionTitle": "Modern History",
@@ -33,7 +35,7 @@ Based on the provided information about the given category of this fictional cit
               "mainContent": "Discussion of major 20th-century events including world wars, the cold war, and major technological breakthroughs.",
               "summary": "Reflections on how the 20th century shaped the modern world."
             },
-            "subsections": []
+            "subsections": [...]
           }
         ]
       }

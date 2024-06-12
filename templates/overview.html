@@ -126,6 +126,11 @@
             text-decoration: underline;
         }
 
+        .subsectionlink {
+            opacity: 50%;
+            font-size: 70%;
+        }
+
         .updateTime {
             color: darkgray;
             font-size: 50%;
@@ -147,6 +152,10 @@
                 text-align: center;
                 
                 border-bottom: 1px solid #ccc;
+            }
+
+            .subsectionlink {
+                display: none !important;
             }
     
             .index a {
@@ -187,6 +196,9 @@
         <h3>Index</h3>
         {% for section in sections %}
             <a href="#{{ section.data.sectionTitle|replace(' ', '_') }}">{{ section.data.sectionTitle }}</a>
+            {% for subsection in section.data.subsections %}
+                <a class="subsectionlink" href="#{{ section.data.sectionTitle|replace(' ', '_') }}-{{  subsection.subsectionTitle|replace(' ', '_') }}">--{{ subsection.subsectionTitle }}</a>
+            {% endfor %}
         {% endfor %}
             <a href="#propernouns">Proper Nouns</a>
     </div>
@@ -202,8 +214,8 @@
                 <p class="main-content">{{ section.data.sectionContent.mainContent }}</p>
                 <hr>
                 {% for subsection in section.data.subsections %}
-                    <div class="content-block">
-                        <h4>{{ subsection.subsectionTitle }}</h4>
+                    <div class="content-block" id="{{ section.data.sectionTitle|replace(' ', '_') }}-{{  subsection.subsectionTitle|replace(' ', '_') }}">
+                        <h4>{{ subsection.subsectionTitle }} </h4>
                         <p class="summary">{{ subsection.subsectionContent.summary }}</p>
                         <p class="main-content">{{ subsection.subsectionContent.mainContent }}</p>
                         <hr>
