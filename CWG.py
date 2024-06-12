@@ -44,15 +44,13 @@ def load_user(user_id):
     user.id = user_id
     return user
 
-# Custom local login required decorator
 def local_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_app.config['ENV'] == 'development':
             mock_login()
-        else:
-            if not current_user.is_authenticated:
-                return login_manager.unauthorized()
+        if not current_user.is_authenticated:
+            return redirect(url_for('google_login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -61,6 +59,7 @@ def mock_login():
         user = User()
         user.id = 'mockuser@example.com'  # Mock user ID or email
         login_user(user)
+
 
 # Google OAuth login route
 @app.route('/login')
