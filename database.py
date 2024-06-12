@@ -13,10 +13,10 @@ from datetime import datetime
 db_lock = threading.Lock()
 
 def init_dbs():
-    facts_db = TinyDB('facts_db.json')
-    conversations_db = TinyDB('conversations_db.json')
-    user_facts_db = TinyDB('user_facts_db.json')
-    overview_db = TinyDB('overview_db.json')
+    facts_db = TinyDB('dbs/facts_db.json')
+    conversations_db = TinyDB('dbs/conversations_db.json')
+    user_facts_db = TinyDB('dbs/user_facts_db.json')
+    overview_db = TinyDB('dbs/overview_db.json')
 
     # Use tables for different types of data, e.g., conversations
     conversations_table = conversations_db.table('conversations')

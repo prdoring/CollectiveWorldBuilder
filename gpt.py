@@ -12,15 +12,14 @@ gpt4_model = "gpt-4o"
 gpt3_model = "gpt-4o"
 
 # Read the initial system message from GPT_Prompt.txt and store it in a variable
-with open('GPT_Prompt.txt', 'r', encoding='utf-8') as file:
+with open('prompts/GPT_Prompt.txt', 'r', encoding='utf-8') as file:
     initial_system_message_text = file.read().strip()
-with open('Fact_Prompt.txt', 'r', encoding='utf-8') as file:
+with open('prompts/Fact_Prompt.txt', 'r', encoding='utf-8') as file:
     fact_message_text = file.read().strip()
-with open('Overview_Prompt.txt', 'r', encoding='utf-8') as file:
+with open('prompts/Overview_Prompt.txt', 'r', encoding='utf-8') as file:
     overview_message_text = file.read().strip()
-with open('Taxonomy_Prompt.txt', 'r', encoding='utf-8') as file:
+with open('prompts/Taxonomy_Prompt.txt', 'r', encoding='utf-8') as file:
     taxonomy_message_text = file.read().strip()
-
 
 def get_gpt_response(messages_for_gpt):
     """Get a response from the GPT model."""

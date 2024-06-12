@@ -87,11 +87,6 @@ def logout():
 
 socketio = SocketIO(app)
 
-# Read the initial system message from GPT_Prompt.txt and store it in a variable
-with open('GPT_Prompt.txt', 'r', encoding='utf-8') as file:
-    initial_system_message_text = file.read().strip()
-with open('Fact_Prompt.txt', 'r', encoding='utf-8') as file:
-    fact_message_text = file.read().strip()
 print_facts_count_by_category()
 # Function to count the number of entries for a specific user
 def count_user_entries(user_name, table=dbs["user_facts_table"]):
