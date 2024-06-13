@@ -4,6 +4,8 @@ import json
 import time
 from database import *
 from summary_creator import *
+from decorators import timing_decorator
+from sqldb import add_new_fact_to_vector_db
 
 load_dotenv()
 client = OpenAI()
@@ -21,24 +23,25 @@ with open('prompts/Overview_Prompt.txt', 'r', encoding='utf-8') as file:
 with open('prompts/Taxonomy_Prompt.txt', 'r', encoding='utf-8') as file:
     taxonomy_message_text = file.read().strip()
 
+@timing_decorator
 def get_gpt_response(messages_for_gpt):
     """Get a response from the GPT model."""
     completion = client.chat.completions.create(
         model=gpt4_model,
         messages=messages_for_gpt
     )
-    print(completion.usage)
     return completion.choices[0].message.content
 
+@timing_decorator
 def get_gpt3_response(messages_for_gpt):
     """Get a response from the GPT model."""
     completion = client.chat.completions.create(
         model=gpt3_model,
         messages=messages_for_gpt
     )
-    print(completion.usage)
     return completion.choices[0].message.content
 
+@timing_decorator
 def call_get_fact_response(messages_for_fact, user_id):
     """Call get_fact_response in a separate thread."""
     fact_response_json = get_gpt_json_response(messages_for_fact)
@@ -52,13 +55,14 @@ def process_new_information(fact_response_json, user_id):
         print("New Proper Nouns:", new_proper_nouns)
         insert_unique_items("facts_table", new_info)
         for info in new_info:
+            add_new_fact_to_vector_db(info["fact"])
             info["user"] = user_id
         
         print("New Info:", new_info)
         insert_unique_items("user_facts_table", new_info)
         insert_unique_items("proper_nouns_table", new_proper_nouns)
-        print_facts_count_by_category()
 
+@timing_decorator
 def get_gpt_json_response(messages_for_fact):
     """Get a response from the GPT model focused on facts."""
     fact_completion = client.chat.completions.create(
@@ -111,3 +115,4 @@ def prepare_messages_for_welcome_message(context):
         {"role": "user", "content": "if you were an interviewer with this database of information can you give me a list of 5 topics in which you want to gather more information?  please respond in a UL html with no additional characters"}
     ]
     return messages_for_welcome
+

@@ -12,6 +12,8 @@ from gpt import *
 from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
+from sqldb import vector_query
+from decorators import timing_decorator
 
 load_dotenv()
 
@@ -96,6 +98,7 @@ def count_user_entries(user_name, table=dbs["user_facts_table"]):
     # Return the count of entries
     return len(user_entries)
 
+@timing_decorator
 def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
     conversation = get_or_create_conversation(conversation_id)
@@ -106,9 +109,7 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     messages_history = conversation['messages']
     last_message = messages_history[-1]['text'] if messages_history else None
 
-    message_for_relevant_history = prepare_messages_for_relevant_history(context, message, last_message)
-    relevant_history = get_gpt3_response(message_for_relevant_history)
-    print(relevant_history)
+    relevant_history = json.dumps(vector_query(message, 25))
     messages_for_gpt = prepare_messages_for_gpt(messages_history, message, relevant_history, initial_system_message)
     messages_for_fact = prepare_messages_for_fact(context, message, last_message, fact_message)
 
