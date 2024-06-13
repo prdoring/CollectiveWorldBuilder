@@ -1,13 +1,13 @@
 import threading
-import database as db
+from database import update_overview_db
 from gpt import *
 
 def call_update_overview(category):
-    context = db.fetch_context()
+    context = fetch_context()
     taxonomy = call_update_taxonomy(category, context)
     messages_for_overview = prepare_messages_for_overview(context, category, taxonomy)
     response_text = get_gpt_json_response(messages_for_overview)
-    db.update_overview_db(category, response_text)
+    update_overview_db(category, response_text)
     print(category," Overview Updated")
 
 def prepare_messages_for_overview(context, category="", taxonomy=""):

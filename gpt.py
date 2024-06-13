@@ -5,7 +5,7 @@ import time
 from database import *
 from summary_creator import *
 from decorators import timing_decorator
-from sqldb import add_new_fact_to_vector_db
+from sqldb import add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, get_all_facts
 
 load_dotenv()
 client = OpenAI()
@@ -41,6 +41,16 @@ def get_gpt3_response(messages_for_gpt):
     )
     return completion.choices[0].message.content
 
+def fetch_context():
+    all_facts = get_all_facts()
+    all_proper_nouns = get_all_proper_nouns()
+    context = "Known Facts:\n"
+    context += "\n".join([f"{fact['category']}: {fact['textv']}" for fact in all_facts])
+    context += "\n\nKnown Proper Nouns:\n"
+    context += "\n".join([f"{noun['word']}: {noun['definition']}" for noun in all_proper_nouns])
+
+    return context
+
 @timing_decorator
 def call_get_fact_response(messages_for_fact, user_id):
     """Call get_fact_response in a separate thread."""
@@ -53,14 +63,14 @@ def process_new_information(fact_response_json, user_id):
     new_proper_nouns = fact_response_json.get('new_proper_nouns', [])
     if new_info or new_proper_nouns:
         print("New Proper Nouns:", new_proper_nouns)
-        insert_unique_items("facts_table", new_info)
         for info in new_info:
-            add_new_fact_to_vector_db(info["fact"])
+            add_new_fact_to_vector_db(info["fact"], user_id, info["category"])
             info["user"] = user_id
+        for noun in new_proper_nouns:
+            add_new_noun_to_vector_db(noun["word"],noun["definition"])
         
         print("New Info:", new_info)
-        insert_unique_items("user_facts_table", new_info)
-        insert_unique_items("proper_nouns_table", new_proper_nouns)
+
 
 @timing_decorator
 def get_gpt_json_response(messages_for_fact):

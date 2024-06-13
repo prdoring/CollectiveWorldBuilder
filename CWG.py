@@ -12,7 +12,7 @@ from gpt import *
 from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
-from sqldb import vector_query
+from sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns
 from decorators import timing_decorator
 
 load_dotenv()
@@ -89,14 +89,11 @@ def logout():
 
 socketio = SocketIO(app)
 
-print_facts_count_by_category()
+check_for_taxonomy_update()
+
 # Function to count the number of entries for a specific user
-def count_user_entries(user_name, table=dbs["user_facts_table"]):
-    UserQuery = Query()
-    # Search for entries where the 'user' field matches the given username
-    user_entries = table.search(UserQuery.user == user_name)
-    # Return the count of entries
-    return len(user_entries)
+def count_user_entries(user_name):
+    return get_user_fact_count(user_name)
 
 @timing_decorator
 def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
@@ -142,32 +139,27 @@ def overview():
             print(snc[0]['time'])
             dat.append({'data':snc[0]['data']['wikiSection'],'time':snc[0]['time']})
     
-    all_proper_nouns = dbs['proper_nouns_table'].all()
-    
+    all_proper_nouns = get_all_proper_nouns()
     unique_sorted_proper_nouns = []
     seen_words = set()
-
     for noun in sorted(all_proper_nouns, key=lambda x: x['word']):
         if noun['word'] not in seen_words:
             unique_sorted_proper_nouns.append(noun)
             seen_words.add(noun['word'])
-
+            
     return render_template('overview.html', sections=dat, nouns=unique_sorted_proper_nouns)
 
 @app.route('/userfacts')
 @local_login_required
 def user_facts():
-    all_facts = dbs["user_facts_table"].all()
-    UserQuery = Query()
-    # Search for entries where the 'user' field matches the given username
-    user_entries = dbs["user_facts_table"].search(UserQuery.user == current_user.id)
-    all_facts = user_entries
+    s_user_facts = get_facts_by_user(current_user.id)
     categorized_facts = {}
-    for fact in all_facts:
+    for fact in s_user_facts:
         category = fact['category']
         if category not in categorized_facts:
             categorized_facts[category] = []
-        categorized_facts[category].append(fact['fact'])
+        categorized_facts[category].append(fact['textv'])
+    
     return render_template('userfacts.html', categorized_facts=categorized_facts)
 
 database_agent_name = "DATABASE"
@@ -216,7 +208,6 @@ def handle_send_message(data):
     if conversation:
         conversation = conversation[0]
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
-
         res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name)), 'sender': 'system'}
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
         emit('user_fact_count', {'count': count_user_entries(current_user.id)})

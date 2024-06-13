@@ -20,8 +20,6 @@ def init_dbs():
 
     # Use tables for different types of data, e.g., conversations
     conversations_table = conversations_db.table('conversations')
-    facts_table = facts_db.table('facts')
-    user_facts_table = user_facts_db.table('user_facts')
     proper_nouns_table = facts_db.table('proper_nouns')
     overview_table = overview_db.table('overview')
     
@@ -31,14 +29,11 @@ def init_dbs():
         'user_facts_db': user_facts_db,
         'overview_db': overview_db,
         'conversations_table': conversations_table,
-        'facts_table': facts_table,
-        'user_facts_table': user_facts_table,
         'proper_nouns_table': proper_nouns_table,
         'overview_table': overview_table
     }
 
 dbs = init_dbs()
-last_overview_fact_count = len(dbs['facts_table'].all())
 max_fact_delta_for_overview_update = 5
 
 categories_list = [
@@ -71,64 +66,12 @@ init_category_count = category_count.copy()
 def current_date_time():
     return datetime.now().strftime("%m/%d/%y %I:%M%p").lower()
 
-def fetch_context():
-    dbs = init_dbs()
-    all_facts = dbs['facts_table'].all()
-    all_proper_nouns = dbs['proper_nouns_table'].all()
-
-    context = "Known Facts:\n"
-    context += "\n".join([f"{fact['category']}: {fact['fact']}" for fact in all_facts])
-    context += "\n\nKnown Proper Nouns:\n"
-    context += "\n".join([f"{noun['word']}: {noun['definition']}" for noun in all_proper_nouns])
-
-    return context
-
-def fetch_cat_context(category):
-    dbs = init_dbs()
-    CatQuery = Query()
-    category_entries = dbs['user_facts_table'].search(CatQuery.category == category)
-
-    context = "Known Facts about " + category + ":\n"
-    context += "\n".join([f"{fact['category']}: {fact['fact']}" for fact in category_entries])
-
-    return context
-
-def get_category_entry(category):
-    dbs = init_dbs()
-    CatQuery = Query()
-    category_entries = dbs['user_facts_table'].search(CatQuery.category == category)
-    return category_entries
 
 def insert_unique_items(table, items):
     dbs = init_dbs()
     for item in items:
         if not dbs[table].search(Query().data == item):
             dbs[table].insert(item)
-
-def print_facts_count_by_category():
-    dbs = init_dbs()
-    category_counts = {category: 0 for category in categories_list}
-    all_facts = dbs['facts_table'].all()
-
-    categories_in_facts = [fact['category'] for fact in all_facts if 'category' in fact]
-    counted = Counter(categories_in_facts)
-    category_counts.update(counted)
-
-    print("Facts count by category:")
-    cat_counts = ""
-    for category, count in category_counts.items():
-        cat_counts += f"{category}: {count} \n"
-        category_count[category] = count
-        if init_category_count[category] == 0:
-            init_category_count[category] = count
-
-        if count - init_category_count[category] > max_fact_delta_for_overview_update:
-            print(f"{category}: {count} - UPDATING OVERVIEW")
-            sc.start_update_overview(category)
-            init_category_count[category] = count
-        else:
-            print(f"{category}: {count}")
-    return cat_counts
 
 def update_conversation_history(conversation_id, message, response_text, messages_history):
     dbs = init_dbs()
