@@ -141,6 +141,40 @@
             margin-bottom: 20px;
         }
 
+        /* Existing styles... */
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            color: rgb(146, 126, 169);
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #382e2ef4;
+            color: #e1e1e1;
+            box-shadow: #202020;
+            font-size: small;
+            text-align: center;
+            border-radius: 10px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the text */
+            left: 50%;
+            margin-left: -100px; /* Use half of the width to center align */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
         @media (max-width: 768px) {
             .index {
                 position: static; /* Change from fixed to static */
@@ -232,7 +266,7 @@
             </div>
         {% endfor %}
 
-            <div class="content-block main" id="propernouns">
+          <!--  <div class="content-block main" id="propernouns">
                 <h2>Proper Nouns</h2> 
                 <hr>
                 {% for noun in nouns %}
@@ -242,7 +276,40 @@
                         <hr>
                     </div>  
                 {% endfor %}
-            </div>
+            </div> -->
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const properNouns = [
+                {% for noun in nouns %}
+                    { word: "{{ noun.word }}", definition: "{{ noun.definition }}" },
+                {% endfor %}
+            ];
+    
+            function createTooltip(word, definition) {
+                return `<span class="tooltip">${word}<span class="tooltiptext">${definition}</span></span>`;
+            }
+    
+            function replaceProperNouns(element) {
+                properNouns.forEach(noun => {
+                    const regex = new RegExp(`\\b${noun.word}\\b`, 'g');
+                    element.innerHTML = element.innerHTML.replace(regex, createTooltip(noun.word, noun.definition));
+                });
+    
+                // Process nested tooltips
+                const tooltips = element.querySelectorAll('.tooltiptext');
+                tooltips.forEach(tooltip => replaceProperNouns(tooltip));
+            }
+    
+            const contentBlocks = document.querySelectorAll('.main-content, .summary, .introduction');
+            contentBlocks.forEach(block => replaceProperNouns(block));
+        });
+    </script>
+    
+    
+
 </body>
 </html>
+
+
