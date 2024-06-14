@@ -162,18 +162,22 @@
             padding: 5px 0;
             position: absolute;
             z-index: 1;
-            bottom: 125%; /* Position the tooltip above the text */
+            bottom: 100%; /* Position the tooltip above the text */
             left: 50%;
             margin-left: -100px; /* Use half of the width to center align */
             opacity: 0;
             transition: opacity 0.3s;
         }
 
-        .tooltip:hover .tooltiptext {
+        .tooltip:hover > .tooltiptext {
             visibility: visible;
             opacity: 1;
         }
 
+        .tooltip .tooltiptext .tooltiptext {
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
 
         @media (max-width: 768px) {
             .index {
@@ -291,25 +295,39 @@
                 return `<span class="tooltip">${word}<span class="tooltiptext">${definition}</span></span>`;
             }
     
-            function replaceProperNouns(element) {
-                properNouns.forEach(noun => {
-                    const regex = new RegExp(`\\b${noun.word}\\b`, 'g');
-                    element.innerHTML = element.innerHTML.replace(regex, createTooltip(noun.word, noun.definition));
-                });
+            function processNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    let text = node.nodeValue;
+                    properNouns.forEach(noun => {
+                        const regex = new RegExp(`\\b${noun.word}\\b`, 'g');
+                        text = text.replace(regex, (match) => createTooltip(match, noun.definition));
+                    });
     
-                // Process nested tooltips
-                const tooltips = element.querySelectorAll('.tooltiptext');
-                tooltips.forEach(tooltip => replaceProperNouns(tooltip));
+                    if (text !== node.nodeValue) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = text;
+                        while (tempDiv.firstChild) {
+                            node.parentNode.insertBefore(tempDiv.firstChild, node);
+                        }
+                        node.parentNode.removeChild(node);
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (!node.classList.contains('tooltip') && !node.classList.contains('tooltiptext')) {
+                        Array.from(node.childNodes).forEach(childNode => processNode(childNode));
+                    }
+                }
             }
     
-            const contentBlocks = document.querySelectorAll('.main-content, .summary, .introduction');
-            contentBlocks.forEach(block => replaceProperNouns(block));
+            function replaceProperNouns() {
+                const contentBlocks = document.querySelectorAll('.main-content, .summary, .introduction');
+                contentBlocks.forEach(block => {
+                    Array.from(block.childNodes).forEach(childNode => processNode(childNode));
+                });
+            }
+    
+            replaceProperNouns();
         });
     </script>
     
-    
-
 </body>
 </html>
-
-
