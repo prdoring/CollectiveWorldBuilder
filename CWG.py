@@ -124,7 +124,16 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
 def home():
     print(f"User {current_user.id} accessed the home page.")
     print("Entries For ",current_user.id, ": ", count_user_entries(current_user.id))
-    return render_template('index.html')
+
+    all_proper_nouns = get_all_proper_nouns()
+    unique_sorted_proper_nouns = []
+    seen_words = set()
+    for noun in sorted(all_proper_nouns, key=lambda x: x['word']):
+        if noun['word'] not in seen_words:
+            unique_sorted_proper_nouns.append(noun)
+            seen_words.add(noun['word'])
+
+    return render_template('index.html', nouns=unique_sorted_proper_nouns)
 
 @app.route('/overview')
 @local_login_required

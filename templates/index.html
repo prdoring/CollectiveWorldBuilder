@@ -266,6 +266,47 @@
             width: 49%;
         }
 
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            color: rgb(146, 126, 169);
+            opacity: 1 !important;
+        }
+
+        .user-message .tooltip {
+            color: rgb(228 205 255);
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 175pxpx;
+            background-color: #382e2ef4;
+            color: #e1e1e1;
+            box-shadow: #202020;
+            font-size: small;
+            text-align: center;
+            border-radius: 10px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 100%; /* Position the tooltip above the text */
+            left: 50%;
+            margin-left: -100px; /* Use half of the width to center align */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover > .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip .tooltiptext .tooltiptext {
+            visibility: hidden !important;
+            opacity: 0;
+        }
+
         .dot:nth-child(1) { animation-delay: -0.32s; }
         .dot:nth-child(2) { animation-delay: -0.16s; }
 
@@ -408,6 +449,21 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 var socket = io();
+
+
+const properNouns = [
+                {% for noun in nouns %}
+                    { word: "{{ noun.word }}", definition: "{{ noun.definition }}" },
+                {% endfor %}
+            ];
+    
+function createTooltip(word, definition) {
+    return `<span class="tooltip">${word}<span class="tooltiptext">${definition}</span></span>`;
+}
+
+
+
+
 document.getElementById('messageInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -549,7 +605,13 @@ function displayMessage(messageData, senderOverride) {
 
     var newMessage = document.createElement('div');
     // Adjust this line to use messageData.text
-    newMessage.innerHTML = marked.parse(messageData.text || messageData); // Fallback to messageData if .text is not available
+    mess_text = marked.parse(messageData.text || messageData); // Fallback to messageData if .text is not available
+    properNouns.forEach(noun => {
+                        const regex = new RegExp(`\\b${noun.word}\\b`, 'g');
+                        mess_text = mess_text.replace(regex, (match) => createTooltip(match, noun.definition));
+                    });
+    
+    newMessage.innerHTML = mess_text; // Fallback to messageData if .text is not available
     newMessage.classList.add('message-bubble');
     // Use senderOverride if provided, else fall back to messageData.sender
     var sender = senderOverride || messageData.sender;
