@@ -144,6 +144,7 @@ def get_all_proper_nouns():
             return result
     finally:
         connection.close() 
+
 def get_all_facts():
     connection = get_db_connection()
     try:
@@ -155,6 +156,47 @@ def get_all_facts():
     finally:
         connection.close() 
 
+def get_user_conversations(user_id):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT chat_name FROM chats WHERE user = %s;"
+            cursor.execute(sql, (user_id))
+            result = cursor.fetchall()
+            return result
+    finally:
+        connection.close()
+
+def sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history):
+    new_message = {"sender": "user", "text": message}
+    gpt_message = {"sender": "assistant", "text": response_text}
+    messages = messages_history + [new_message, gpt_message]
+    
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE chats SET messages = %s WHERE chat_name = %s AND user = %s;"
+            cursor.execute(sql, (json.dumps(messages), conversation_id, user_id))
+        connection.commit()
+    finally:
+        connection.close()
+
+def sql_get_or_create_conversation(conversation_id, user):  
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT chat_name, messages FROM chats WHERE chat_name = %s AND user = %s;"
+            cursor.execute(sql,(conversation_id, user))
+            result = cursor.fetchall()
+            if not result:
+                sql = "INSERT INTO chats (chat_id, chat_name, user, messages) VALUES (UUID(), %s, %s, %s)"
+                cursor.execute(sql, (conversation_id, user, json.dumps([])))
+                connection.commit()
+                return {'name': conversation_id, 'messages': []}
+            else:
+                return {'name': conversation_id, 'messages': json.loads(result[0]["messages"])}
+    finally:
+        connection.close()
 
 # Query data from the table
 @timing_decorator

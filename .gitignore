@@ -1,5 +1,4 @@
 .env
-conversations_db.json
 __pycache__/
 embedding/
 singlestore_bundle.pem

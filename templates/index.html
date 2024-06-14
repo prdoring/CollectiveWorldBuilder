@@ -513,9 +513,9 @@ socket.on('existing_conversations', function(conversations) {
     conversationList.innerHTML = ''; // Clear the list before adding
     conversations.forEach(function(conversation) {
         var newConversation = document.createElement('li');
-        newConversation.textContent = conversation.name;
-        newConversation.setAttribute('onclick', `joinConversation('${conversation.name}')`);
-        newConversation.id = conversation.name;
+        newConversation.textContent = conversation.chat_name;
+        newConversation.setAttribute('onclick', `joinConversation('${conversation.chat_name}')`);
+        newConversation.id = conversation.chat_name;
         conversationList.appendChild(newConversation);
     });
 });

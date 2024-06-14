@@ -12,7 +12,7 @@ from gpt import *
 from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
-from sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns
+from sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations
 from decorators import timing_decorator
 
 load_dotenv()
@@ -98,7 +98,7 @@ def count_user_entries(user_name):
 @timing_decorator
 def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
-    conversation = get_or_create_conversation(conversation_id)
+    conversation = sql_get_or_create_conversation(conversation_id, current_user.id)
     context = fetch_context()
 
     # request relevant history summary
@@ -116,8 +116,7 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     if(not disable_canon):
         fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
         fact_response_thread.start()
-
-    update_conversation_history(conversation_id, message, response_text, messages_history)
+    sql_update_conversation_history(conversation_id, current_user.id, message, response_text, messages_history)
     return response_text
 
 @app.route('/')
@@ -168,20 +167,16 @@ def on_connect():
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
     
-    dbs = init_dbs()
-    User = Query()
-    filtered_conversations = [conversation for conversation in dbs["conversations_table"].search(User.user == current_user.id)]
-    existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
-
+    existing_conversations = get_user_conversations(current_user.id)
     # Check if any conversation has the name "DATABASE" - This is used for the non content creation talking to the DB
-    has_database_conversation = any(conversation['name'] == database_agent_name for conversation in filtered_conversations)
+    has_database_conversation = any(conversation['chat_name'] == database_agent_name for conversation in existing_conversations)
     if(not has_database_conversation):
         print("creating db agent")
         welcome_message = {"sender": "assistant", "text": f"I am an agent for you to communicate with the database without generating canon, please use me to ask anything about this world."}
-        dbs["conversations_table"].insert({'name': database_agent_name, 'messages': [welcome_message], 'user': current_user.id})
-        filtered_conversations = [conversation for conversation in dbs["conversations_table"].search(User.user == current_user.id)]
-        existing_conversations = [{'name': conversation['name']} for conversation in filtered_conversations]
-
+        sql_get_or_create_conversation(database_agent_name, current_user.id)
+        sql_update_conversation_history(database_agent_name, current_user, [],[],[welcome_message])
+        existing_conversations = get_user_conversations(current_user.id)
+    print(existing_conversations)
     emit('existing_conversations', existing_conversations)
     emit('user_fact_count', {'count': count_user_entries(current_user.id)})
 
@@ -190,10 +185,12 @@ def handle_create_conversation(data):
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
     name = data['name']
-    Conversation = Query()
-    if not dbs["conversations_table"].search(Conversation.name == name):
+    existing_conversations = get_user_conversations(current_user.id)
+    has_convo = any(conversation['chat_name'] == name for conversation in existing_conversations)
+    if(not has_convo):
         welcome_message = {"sender": "assistant", "text": f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
-        dbs["conversations_table"].insert({'name': name, 'messages': [welcome_message], 'user': current_user.id})
+        sql_get_or_create_conversation(name, current_user.id)
+        sql_update_conversation_history(name, current_user, [],[],[welcome_message])
         emit('conversation_created_all', {'name': name}, broadcast=True)
         emit('conversation_created', {'name': name})
 
@@ -203,10 +200,9 @@ def handle_send_message(data):
         return False  # Or handle appropriately
     message = {'text': data['message'], 'sender': 'user'}
     conversation_id = data['conversation_id']
-    Conversation = Query()
-    conversation = dbs["conversations_table"].search(Conversation.name == conversation_id)
+    conversation = sql_get_or_create_conversation(conversation_id, current_user.id)
     if conversation:
-        conversation = conversation[0]
+        conversation = conversation
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
         res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name)), 'sender': 'system'}
         emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
@@ -218,12 +214,10 @@ def handle_join_conversation(data):
         return False  # Or handle appropriately
     conversation_id = data['conversation_id']
     join_room(conversation_id)
-    
-    dbs = init_dbs()
-    Conversation = Query()
-    conversation = dbs["conversations_table"].search(Conversation.name == conversation_id)
+
+    conversation = sql_get_or_create_conversation(conversation_id, current_user.id)
     if conversation:
-        emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation[0]['messages'], 'user': current_user.id})
+        emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation['messages'], 'user': current_user.id})
 
 @socketio.on('leave_conversation')
 def handle_leave_conversation(data):
