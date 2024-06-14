@@ -172,9 +172,8 @@ def on_connect():
     has_database_conversation = any(conversation['chat_name'] == database_agent_name for conversation in existing_conversations)
     if(not has_database_conversation):
         print("creating db agent")
-        welcome_message = {"sender": "assistant", "text": f"I am an agent for you to communicate with the database without generating canon, please use me to ask anything about this world."}
-        sql_get_or_create_conversation(database_agent_name, current_user.id)
-        sql_update_conversation_history(database_agent_name, current_user, [],[],[welcome_message])
+        welcome_message = "I am an agent for you to communicate with the database without generating canon, please use me to ask anything about this world."
+        sql_get_or_create_conversation(database_agent_name, current_user.id, welcome_message)
         existing_conversations = get_user_conversations(current_user.id)
     print(existing_conversations)
     emit('existing_conversations', existing_conversations)
@@ -188,9 +187,8 @@ def handle_create_conversation(data):
     existing_conversations = get_user_conversations(current_user.id)
     has_convo = any(conversation['chat_name'] == name for conversation in existing_conversations)
     if(not has_convo):
-        welcome_message = {"sender": "assistant", "text": f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."}
-        sql_get_or_create_conversation(name, current_user.id)
-        sql_update_conversation_history(name, current_user, [],[],[welcome_message])
+        welcome_message = f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."
+        sql_get_or_create_conversation(name, current_user.id, welcome_message)
         emit('conversation_created_all', {'name': name}, broadcast=True)
         emit('conversation_created', {'name': name})
 

@@ -181,7 +181,7 @@ def sql_update_conversation_history(conversation_id, user_id, message, response_
     finally:
         connection.close()
 
-def sql_get_or_create_conversation(conversation_id, user):  
+def sql_get_or_create_conversation(conversation_id, user, initial_message=""):  
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
@@ -190,7 +190,9 @@ def sql_get_or_create_conversation(conversation_id, user):
             result = cursor.fetchall()
             if not result:
                 sql = "INSERT INTO chats (chat_id, chat_name, user, messages) VALUES (UUID(), %s, %s, %s)"
-                cursor.execute(sql, (conversation_id, user, json.dumps([])))
+                if(initial_message!=""):
+                    initial_message = {"sender": "assistant", "text": initial_message}
+                cursor.execute(sql, (conversation_id, user, json.dumps([initial_message])))
                 connection.commit()
                 return {'name': conversation_id, 'messages': []}
             else:
