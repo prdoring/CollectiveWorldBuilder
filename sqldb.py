@@ -95,7 +95,6 @@ def get_facts_by_user(userid):
                 if category not in categorized_facts:
                     categorized_facts[category] = []
                 categorized_facts[category].append(fact['textv'])
-
             return categorized_facts
     finally:
         connection.close() 
