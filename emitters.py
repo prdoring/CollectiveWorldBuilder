@@ -29,7 +29,7 @@ def emit_proper_nouns():
     emit('nouns_list', {'nouns': get_all_proper_nouns()})
 
 def on_connect_emitters(user_id):
-    existing_conversations = get_user_conversations(current_user.id)
+    existing_conversations = get_user_conversations(user_id)
     # Check if any conversation has the name "DATABASE" - This is used for the non content creation talking to the DB
     has_database_conversation = any(conversation['chat_name'] == Config.DATABASE_AGENT_NAME for conversation in existing_conversations)
     if(not has_database_conversation):

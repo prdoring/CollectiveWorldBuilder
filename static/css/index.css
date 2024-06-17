@@ -1,0 +1,391 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #121212;
+    color: white;
+}
+.container {
+    display: flex;
+    height: 90vh;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    padding-top: 2%;
+}
+.conversations, .chat {
+    padding: 20px;
+    overflow-y: auto;
+}
+/* Styling for conversation list */
+.conversations {
+    background-color: #242424; /* Slightly adjusted for modern look */
+    width: 50%;
+    border-radius: 10px; /* Smoother rounded corners */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+    transition: all 0.3s ease;
+    z-index: 0;
+}
+/* Chat area styling */
+.chat {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #181818; /* Slightly adjusted for modern look */
+    max-width: 80%;
+    border-radius: 10px; /* Smoother rounded corners */
+    margin-left: -10px;
+    z-index: 1;
+}
+
+/* Chat title styling */
+#chatBanner {
+    display:inline-flex;
+    font-size: 1.5em;
+    margin: -20px 0 10px 0; /* Adjusted margin for alignment */
+    z-index: 3;
+    color: #ffffff;
+    background-color: #333333;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    background-image: url(/static/banner.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    
+}
+
+#messages {
+    list-style-type: none;
+    padding: 0;
+    overflow-y: auto;
+    margin-top:20px;
+    margin-bottom: 0;
+    flex-grow: 1;
+    
+    background-image: url("../icon.webp");
+    background-position: center;
+    background-size:80%;
+    background-repeat:no-repeat;
+}
+/* Message input area styling */
+.message-input {
+    display: flex;
+    margin-top: auto;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px; /* Adjusted for a sleeker look */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle inner shadow */
+}
+/* Input field styling */
+.message-input input[type="text"] {
+    flex-grow: 1;
+    margin-right: 10px;
+    background-color: #444; /* Slightly lighter for contrast */
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 5px; /* Adjusted for sleek look */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); /* Subtle shadow for depth */
+}
+/* Send button styling */
+.btn.btn-primary {
+    border: none;
+    background-image: linear-gradient(to right, #0062E6, #33AEFF); /* Modern gradient */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+/* Adjustments for send button on hover */
+.btn.btn-primary:hover {
+    background-image: linear-gradient(to right, #004DBF, #007BFF); /* Darker gradient for hover */
+}
+
+.conversations ul {
+    list-style-type: none;
+    padding: 0;
+}
+.conversations li {
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #333;
+    margin-bottom: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+.conversations li:hover, .conversations li.active {
+    background-color: #007bff;
+    transform: translateX(5px);
+}
+
+.external-link::after {
+    content: " ↗";
+    font-size: smaller;
+}
+
+.message-bubble {
+    padding: 10px 20px;
+    border-radius: 20px; /* Smoother rounded corners */
+    margin-bottom: 10px;
+    max-width: 80%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Lighter shadow for subtlety */
+    color: #f1f1f1; /* Light color for text */
+    transform: scale(0.5);
+    animation: popIn 0.5s forwards;
+}
+/* User message styling */
+.user-message {
+    background-image: linear-gradient(to top right, #0099FF, #19c6ff); /* Gradient for user messages */
+    margin-left: auto;
+    border-bottom-right-radius: 0;
+}
+
+/* Server message styling */
+.server-message {
+    background-image:linear-gradient(to bottom left, #404040, #1f1f1f); /* Slightly lighter for contrast */
+    color: #ddd; /* Light color for text */
+    border-bottom-left-radius: 0;
+}
+.message-wrapper {
+    display: flex;
+    margin-bottom: 10px;
+}
+#messages {
+    padding: 10px;
+}
+
+/* New Conversation Form Styles */
+#newConversationForm {
+    align-items: center;
+    margin-bottom: 20px; /* Add some space between the form and the conversation list */
+    margin-top: 20px;
+    background-image:linear-gradient(to bottom left, #404040, #1f1f1f); /* Slightly lighter for contrast */
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+#newConversationForm input[type="text"] {
+    flex-grow: 1;
+    margin: 3px;
+    margin-bottom: 0px;
+    background-color: #333;
+    border: 1px solid #444;
+    width: 100%;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+}
+
+#newConversationForm input[type="text"]:focus {
+    background-color: #444; /* Slightly lighter on focus */
+    outline: none; /* Remove the default focus outline */
+    width:100%;
+    border-color: #555;
+}
+
+#newConversationForm button {
+    margin: 3px;
+    margin-top: 0px;
+    padding: 10px 15px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width:100%;
+
+    border: none;
+    background-image: linear-gradient(to right, #0062E6, #33AEFF); /* Modern gradient */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+#newConversationForm button:hover{
+    background-image: linear-gradient(to right, #004DBF, #007BFF); /* Darker gradient for hover */
+}
+
+#newConversationForm button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+#newConversationForm button:disabled {
+    background-color: #555; /* Grayed out when disabled */
+    box-shadow: none;
+}
+
+.conversations.collapsed {
+    width: 15px;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+.hamburger-menu {
+    margin-top: -10px;
+    margin-left: -10px;
+}
+
+.dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: white;
+    animation: bounce 1.4s infinite both;
+    margin: 0 4px;
+}
+#user_info{
+    display: block;
+    text-align: right;
+    font-size: 70%;
+    width: 50%;
+    border-left: black 1px solid;
+    margin-top: -3px;
+}
+#user_info a{
+    color: #dee2e6;
+    font-weight: bold;
+    -webkit-text-stroke-color: #0525c2;
+    -webkit-text-stroke-width: 1px;
+    text-shadow: 4px 3px 6px black;
+}
+.chatTitle{
+    width: 49%;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    color: rgb(146, 126, 169);
+    opacity: 1 !important;
+}
+
+.user-message .tooltip {
+    color: rgb(228 205 255);
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 175pxpx;
+    background-color: #382e2ef4;
+    color: #e1e1e1;
+    box-shadow: #202020;
+    font-size: small;
+    text-align: center;
+    border-radius: 10px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%; /* Position the tooltip above the text */
+    left: 50%;
+    margin-left: -100px; /* Use half of the width to center align */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover > .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip .tooltiptext .tooltiptext {
+    visibility: hidden !important;
+    opacity: 0;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1.0); }
+}
+
+
+/* Adjust container width when conversations section is collapsed */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .conversations {
+        width: 100%; /* Take the full width */
+        max-width: none; /* Remove max-width restriction */
+        height: auto;
+        min-height: 80%;
+        padding:12px;
+        transition: 0.3s ease; /* Disable transition for height */
+    }
+    .conversations.collapsed {
+        height: 60px;
+        min-height: 0;
+        width: 100%;
+        overflow: hidden;
+        transition: 0.3s ease;
+    }
+    .chat {
+        max-width: 100%; /* Adjust chat width when conversations section is collapsed */
+        margin-left:0;
+        margin-top:-5px;
+    }
+
+    .hamburger-menu {
+        font-size: 26px;
+        margin-top: -10px;
+        text-align: left;
+        -webkit-text-stroke-width: 3px;
+        -webkit-text-stroke-color: #21151b;
+        -webkit-text-stroke-width: 2px;
+    }
+}
+
+
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: transparent; /* Color of the track */
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the handle */
+    border-radius: 4px; /* Rounded corners */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the handle on hover */
+}
+#icon {
+    width: 100%;
+    background-image: url("../icon.webp");
+    height:0;
+    padding-top: 14%; /* (img-height / img-width * container-width) */
+        /* (853 / 1280 * 100) */
+    max-height: 361px;
+    max-width:1708px;
+
+    background-position: center-top;
+    background-size:100%;
+    background-repeat:no-repeat;
+    border-bottom: 1px solid #ccc;
+}

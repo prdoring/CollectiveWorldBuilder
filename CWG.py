@@ -129,7 +129,7 @@ def user_facts():
 def on_connect():
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
-    on_connect_emitters(current_user.id, database_agent_name)
+    on_connect_emitters(current_user.id)
 
 @socketio.on('create_conversation')
 def handle_create_conversation(data):
