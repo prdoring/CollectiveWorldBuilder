@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           source: "./"
-          target: "/path/to/your/app"
+          target: "/home/prdoring/CWB/CollectiveWorldBuilder/"
 
       - name: SSH Commands
         uses: appleboy/ssh-action@v0.1.3
