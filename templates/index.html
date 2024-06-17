@@ -515,6 +515,12 @@ socket.on('conversation_created_all', function(data) {
 });
 
 socket.on('conversation_created', function(data) {
+    var conversationList = document.getElementById('conversationList');
+    var newConversation = document.createElement('li');
+    newConversation.textContent = data.name;
+    newConversation.setAttribute('onclick', `joinConversation('${data.name}')`);
+    newConversation.id = data.name;
+    conversationList.appendChild(newConversation);
     joinConversation(data.name); // Auto-select the newly created conversation
 });
 

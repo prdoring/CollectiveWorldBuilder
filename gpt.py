@@ -5,7 +5,7 @@ import time
 from database import *
 from summary_creator import *
 from decorators import timing_decorator
-from sqldb import add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, get_all_facts
+from sqldb import add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, get_all_facts, sql_get_or_create_conversation, sql_update_conversation_history, vector_query
 
 load_dotenv()
 client = OpenAI()
@@ -130,3 +130,32 @@ def prepare_messages_for_welcome_message(context):
     ]
     return messages_for_welcome
 
+def get_welcome_message():
+    context = fetch_context()
+    messages_for_welcome = prepare_messages_for_welcome_message(context)
+    response_text = get_gpt_response(messages_for_welcome)
+    return response_text
+
+@timing_decorator
+def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
+    """Process and respond to a message in a conversation using GPT, including system and fact messages."""
+    conversation = sql_get_or_create_conversation(conversation_id, user_id)
+    context = fetch_context()
+
+    # request relevant history summary
+
+    messages_history = conversation['messages']
+    last_message = messages_history[-1]['text'] if messages_history else None
+
+    relevant_history = json.dumps(vector_query(message, 25))
+    messages_for_gpt = prepare_messages_for_gpt(messages_history, message, relevant_history, initial_system_message)
+    messages_for_fact = prepare_messages_for_fact(context, message, last_message, fact_message)
+
+    response_text = get_gpt_response(messages_for_gpt)
+
+    # Call get_fact_response on a separate thread unless it is disabled
+    if(not disable_canon):
+        fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
+        fact_response_thread.start()
+    sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history)
+    return response_text

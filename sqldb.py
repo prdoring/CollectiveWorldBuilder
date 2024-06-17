@@ -88,7 +88,15 @@ def get_facts_by_user(userid):
             sql = "SELECT textv, category FROM facts_vector WHERE userid = %s ORDER BY category;"
             cursor.execute(sql, (userid))
             result = cursor.fetchall()
-            return result
+
+            categorized_facts = {}
+            for fact in result:
+                category = fact['category']
+                if category not in categorized_facts:
+                    categorized_facts[category] = []
+                categorized_facts[category].append(fact['textv'])
+
+            return categorized_facts
     finally:
         connection.close() 
 

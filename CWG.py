@@ -14,6 +14,7 @@ from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
 from sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations
 from decorators import timing_decorator
+from emitters import *
 
 load_dotenv()
 
@@ -27,6 +28,7 @@ login_manager.login_view = "google_login"
 
 # Authlib OAuth setup
 oauth = OAuth(app)
+database_agent_name = app.config["DATABASE_AGENT_NAME"]
 google = oauth.register(
     name='google',
     client_id=app.config['GOOGLE_CLIENT_ID'],
@@ -91,39 +93,12 @@ socketio = SocketIO(app)
 
 check_for_taxonomy_update()
 
-# Function to count the number of entries for a specific user
-def count_user_entries(user_name):
-    return get_user_fact_count(user_name)
-
-@timing_decorator
-def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
-    """Process and respond to a message in a conversation using GPT, including system and fact messages."""
-    conversation = sql_get_or_create_conversation(conversation_id, current_user.id)
-    context = fetch_context()
-
-    # request relevant history summary
-
-    messages_history = conversation['messages']
-    last_message = messages_history[-1]['text'] if messages_history else None
-
-    relevant_history = json.dumps(vector_query(message, 25))
-    messages_for_gpt = prepare_messages_for_gpt(messages_history, message, relevant_history, initial_system_message)
-    messages_for_fact = prepare_messages_for_fact(context, message, last_message, fact_message)
-
-    response_text = get_gpt_response(messages_for_gpt)
-
-    # Call get_fact_response on a separate thread unless it is disabled
-    if(not disable_canon):
-        fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
-        fact_response_thread.start()
-    sql_update_conversation_history(conversation_id, current_user.id, message, response_text, messages_history)
-    return response_text
 
 @app.route('/')
 @local_login_required
 def home():
     print(f"User {current_user.id} accessed the home page.")
-    print("Entries For ",current_user.id, ": ", count_user_entries(current_user.id))
+    print("Entries For ",current_user.id, ": ", get_user_fact_count(current_user.id))
 
     all_proper_nouns = get_all_proper_nouns()
 
@@ -148,33 +123,13 @@ def overview():
 @app.route('/userfacts')
 @local_login_required
 def user_facts():
-    s_user_facts = get_facts_by_user(current_user.id)
-    categorized_facts = {}
-    for fact in s_user_facts:
-        category = fact['category']
-        if category not in categorized_facts:
-            categorized_facts[category] = []
-        categorized_facts[category].append(fact['textv'])
-    
-    return render_template('userfacts.html', categorized_facts=categorized_facts)
+    return render_template('userfacts.html', categorized_facts=get_facts_by_user(current_user.id))
 
-database_agent_name = "DATABASE"
 @socketio.on('connect')
 def on_connect():
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
-    
-    existing_conversations = get_user_conversations(current_user.id)
-    # Check if any conversation has the name "DATABASE" - This is used for the non content creation talking to the DB
-    has_database_conversation = any(conversation['chat_name'] == database_agent_name for conversation in existing_conversations)
-    if(not has_database_conversation):
-        print("creating db agent")
-        welcome_message = "I am an agent for you to communicate with the database without generating canon, please use me to ask anything about this world."
-        sql_get_or_create_conversation(database_agent_name, current_user.id, welcome_message)
-        existing_conversations = get_user_conversations(current_user.id)
-    print(existing_conversations)
-    emit('existing_conversations', existing_conversations)
-    emit('user_fact_count', {'count': count_user_entries(current_user.id)})
+    on_connect_emitters(current_user.id, database_agent_name)
 
 @socketio.on('create_conversation')
 def handle_create_conversation(data):
@@ -186,8 +141,7 @@ def handle_create_conversation(data):
     if(not has_convo):
         welcome_message = f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."
         sql_get_or_create_conversation(name, current_user.id, welcome_message)
-        emit('conversation_created_all', {'name': name}, broadcast=True)
-        emit('conversation_created', {'name': name})
+        emit_conversation_created(name)
 
 @socketio.on('send_message')
 def handle_send_message(data):
@@ -198,10 +152,10 @@ def handle_send_message(data):
     conversation = sql_get_or_create_conversation(conversation_id, current_user.id)
     if conversation:
         conversation = conversation
-        emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
+        emit_broadcast_message(conversation_id, message)
         res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name)), 'sender': 'system'}
-        emit('broadcast_message', {'conversation_id': conversation_id, 'message': res}, room=conversation_id)
-        emit('user_fact_count', {'count': count_user_entries(current_user.id)})
+        emit_broadcast_message(conversation_id, res)
+        emit_user_fact_count(current_user.id)
 
 @socketio.on('join_conversation')
 def handle_join_conversation(data):
@@ -209,10 +163,7 @@ def handle_join_conversation(data):
         return False  # Or handle appropriately
     conversation_id = data['conversation_id']
     join_room(conversation_id)
-
-    conversation = sql_get_or_create_conversation(conversation_id, current_user.id)
-    if conversation:
-        emit('conversation_history', {'conversation_id': conversation_id, 'history': conversation['messages'], 'user': current_user.id})
+    emit_conversation_history(conversation_id, current_user.id)
 
 @socketio.on('leave_conversation')
 def handle_leave_conversation(data):
@@ -224,17 +175,14 @@ def handle_leave_conversation(data):
 def request_welcome_message(data):
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
-    context = fetch_context()
-    messages_for_welcome = prepare_messages_for_welcome_message(context)
-    response_text = get_gpt_response(messages_for_welcome)
-    emit('welcome_message', {'message': response_text})
+    emit_welcome_message()
 
 @socketio.on('request_nouns')
 def request_nouns(data):
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
 
-    emit('nouns_list', {'nouns': get_all_proper_nouns()})
+    emit_proper_nouns()
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=6969)
