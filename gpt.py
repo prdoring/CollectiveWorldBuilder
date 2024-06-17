@@ -55,21 +55,25 @@ def fetch_context():
 def call_get_fact_response(messages_for_fact, user_id):
     """Call get_fact_response in a separate thread."""
     fact_response_json = get_gpt_json_response(messages_for_fact)
-    process_new_information(fact_response_json, user_id)
+    return process_new_information(fact_response_json, user_id)
 
 def process_new_information(fact_response_json, user_id):
     """Process new information received from the fact response."""
     new_info = fact_response_json.get('new_info', [])
     new_proper_nouns = fact_response_json.get('new_proper_nouns', [])
+    new_added = {'noun':False, 'fact': False}
     if new_info or new_proper_nouns:
         print("New Proper Nouns:", new_proper_nouns)
         for info in new_info:
+            new_added["fact"] = True
             add_new_fact_to_vector_db(info["fact"], user_id, info["category"])
             info["user"] = user_id
         for noun in new_proper_nouns:
             add_new_noun_to_vector_db(noun["word"],noun["definition"])
+            new_added["noun"] = True
         
         print("New Info:", new_info)
+    return new_added
 
 
 @timing_decorator

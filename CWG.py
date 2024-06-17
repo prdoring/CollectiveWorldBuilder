@@ -126,14 +126,8 @@ def home():
     print("Entries For ",current_user.id, ": ", count_user_entries(current_user.id))
 
     all_proper_nouns = get_all_proper_nouns()
-    unique_sorted_proper_nouns = []
-    seen_words = set()
-    for noun in sorted(all_proper_nouns, key=lambda x: x['word']):
-        if noun['word'] not in seen_words:
-            unique_sorted_proper_nouns.append(noun)
-            seen_words.add(noun['word'])
 
-    return render_template('index.html', nouns=unique_sorted_proper_nouns)
+    return render_template('index.html', nouns=all_proper_nouns)
 
 @app.route('/overview')
 @local_login_required
@@ -148,14 +142,8 @@ def overview():
             dat.append({'data':snc[0]['data']['wikiSection'],'time':snc[0]['time']})
     
     all_proper_nouns = get_all_proper_nouns()
-    unique_sorted_proper_nouns = []
-    seen_words = set()
-    for noun in sorted(all_proper_nouns, key=lambda x: x['word']):
-        if noun['word'] not in seen_words:
-            unique_sorted_proper_nouns.append(noun)
-            seen_words.add(noun['word'])
             
-    return render_template('overview.html', sections=dat, nouns=unique_sorted_proper_nouns)
+    return render_template('overview.html', sections=dat, nouns=all_proper_nouns)
 
 @app.route('/userfacts')
 @local_login_required
@@ -240,6 +228,13 @@ def request_welcome_message(data):
     messages_for_welcome = prepare_messages_for_welcome_message(context)
     response_text = get_gpt_response(messages_for_welcome)
     emit('welcome_message', {'message': response_text})
+
+@socketio.on('request_nouns')
+def request_nouns(data):
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
+
+    emit('nouns_list', {'nouns': get_all_proper_nouns()})
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=6969)

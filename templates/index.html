@@ -452,18 +452,19 @@
 var socket = io();
 
 
-const properNouns = [
+let properNouns = [
                 {% for noun in nouns %}
                     { word: "{{ noun.word }}", definition: "{{ noun.definition }}" },
                 {% endfor %}
             ];
     
+function updateNouns(nouns){
+    properNouns = nouns;
+}
+
 function createTooltip(word, definition) {
     return `<span class="tooltip">${word}<span class="tooltiptext">${definition}</span></span>`;
 }
-
-
-
 
 document.getElementById('messageInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -519,6 +520,10 @@ socket.on('conversation_created', function(data) {
 
 socket.on('user_fact_count', function(data) {
     document.getElementById("your-contributions").innerHTML = data.count+" Contributions!";
+});
+
+socket.on('nouns_list', function(data) {
+    updateNouns(data.nouns); // Auto-select the newly created conversation
 });
 
 
@@ -595,7 +600,9 @@ socket.on('broadcast_message', function(data) {
 socket.on('welcome_message', function(data) {
     
     if (currentConversationId==null) {
+        socket.emit('request_nouns',{});
         displayWelcomeMessage(data.message); // Pass the whole message object
+        
     }
 });
 
@@ -639,6 +646,10 @@ function displayWelcomeMessage(message){
 
     var newMessage = document.createElement('div');
     // Adjust this line to use messageData.text
+    properNouns.forEach(noun => {
+                        const regex = new RegExp(`\\b${noun.word}\\b`, 'g');
+                        message = message.replace(regex, (match) => createTooltip(match, noun.definition));
+                    });
     newMessage.innerHTML = message
     newMessage.classList.add('message-bubble');
     newMessage.classList.add('server-message');

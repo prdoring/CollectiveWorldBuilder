@@ -138,7 +138,7 @@ def get_all_proper_nouns():
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT word, definition FROM proper_nouns"
+            sql = "SELECT word, definition FROM proper_nouns ORDER BY word"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
