@@ -81,11 +81,11 @@ document.getElementById('messageInput').addEventListener('keypress', function(e)
 var currentConversationId = null;
 
 document.getElementById('chat').addEventListener('click', function(e) {
-    document.querySelector('.conversations').classList.toggle('collapsed');
+    document.querySelector('.conversations').classList.add('collapsed');
 });
 
 document.getElementById('message-input').addEventListener('click', function(e) {
-    document.querySelector('.conversations').classList.toggle('collapsed');
+    document.querySelector('.conversations').classList.add('collapsed');
 });
 
 

@@ -50,7 +50,7 @@ overview_count = {
     "Other": 0
 }
 
-max_fact_delta_for_overview_update = 5
+max_fact_delta_for_overview_update = 4
 
 # Establish a connection to the database
 def get_db_connection():
