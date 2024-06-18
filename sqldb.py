@@ -5,6 +5,8 @@ import json
 import os
 from decorators import timing_decorator
 import summary_creator as sc
+import uuid
+import datetime
 
 load_dotenv()
 client = OpenAI()
@@ -34,7 +36,20 @@ category_count = {
     "Outside Influences": 0,
     "Other": 0
 }
-init_category_count = category_count.copy()
+
+overview_count = {
+    "Overview": 0,
+    "Neighborhoods": 0,
+    "People": 0,
+    "Society and Culture": 0,
+    "Economy and Trade": 0,
+    "Law and Order": 0,
+    "Religion and Magic": 0,
+    "Infrastructure and Technology": 0,
+    "Outside Influences": 0,
+    "Other": 0
+}
+
 max_fact_delta_for_overview_update = 5
 
 # Establish a connection to the database
@@ -110,36 +125,159 @@ def get_user_fact_count(userid):
     finally:
         connection.close() 
 
+def get_category_fact_count(category):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT COUNT(*) FROM facts_vector WHERE category = %s;"
+            cursor.execute(sql, (category))
+            result = cursor.fetchall()
+            return result[0]['COUNT(*)']
+    finally:
+        connection.close() 
+
+def get_overview_category_fact_count(category):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT FactCount from overview where TopCategory = %s"
+            cursor.execute(sql, (category))
+            result = cursor.fetchall()
+            if(result):
+                return result[0]['FactCount']
+            else:
+                return 0
+    finally:
+        connection.close() 
+
+def clear_overview_category(category):
+    # DELETE FROM overview WHERE TopSectionId = 'specific-top-section-id';
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM overview WHERE TopCategory = %s"
+            cursor.execute(sql, (category))
+        connection.commit()
+    finally:
+        connection.close()
+
+def insert_overview_entry(title, introduction, main_content, summary, parent_section_id, top_category, fact_count):
+    # DELETE FROM overview WHERE TopSectionId = 'specific-top-section-id';
+    new_uuid = str(uuid.uuid4())
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            # SQL statement that inserts a new record and returns the new UUID
+            sql = """
+            INSERT INTO overview (ID, Title, Introduction, MainContent, Summary, ParentSectionID, TopCategory, FactCount)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            """
+            # Execute the SQL statement
+            cursor.execute(sql, (new_uuid, title, introduction, main_content, summary, parent_section_id, top_category, fact_count))
+            # Commit changes
+            connection.commit()
+
+            return new_uuid
+    finally:
+        # Close the connection
+        connection.close()
+
 def check_for_taxonomy_update():
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
             sql = "SELECT category, COUNT(*) FROM facts_vector WHERE category IS NOT NULL GROUP BY category;"
             cursor.execute(sql)
-            result = cursor.fetchall()
+            fact_result = cursor.fetchall()
+            sql = "SELECT TopCategory, FactCount FROM overview WHERE ParentSectionID = ''"
+            cursor.execute(sql)
+            overview_result = cursor.fetchall()
     finally:
         connection.close()
 
-    for row in result:
+    for row in fact_result:
         category = row['category']
         count = row['COUNT(*)']
         category_count[category] = count
+    
+    for row in overview_result:
+        category = row['TopCategory']
+        count = row['FactCount']
+        overview_count[category] = count
 
     print("Facts count by category:")
     cat_counts = ""
     for category, count in category_count.items():
-        cat_counts += f"{category}: {count} \n"
-        category_count[category] = count
-        if init_category_count[category] == 0:
-            init_category_count[category] = count
-
-        if count - init_category_count[category] > max_fact_delta_for_overview_update:
-            print(f"{category}: {count} - UPDATING OVERVIEW")
+        ov_cat_count = overview_count[category]
+        if count - ov_cat_count > max_fact_delta_for_overview_update:
+            print(f"{category}: {count} - UPDATING OVERVIEW with {(count-ov_cat_count)} new facts")
             sc.start_update_overview(category)
-            init_category_count[category] = count
         else:
-            print(f"{category}: {count}")
+            print(f"{category}: {count} - OVER:{ov_cat_count}")
     return cat_counts
+
+def get_overview_data():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM overview ORDER BY Title ASC"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return build_overview_tree(result)
+    finally:
+        connection.close() 
+
+def build_overview_tree(records):
+    tree = {}
+    nodes = {}
+
+    # Create a dictionary for each record using its ID as the key
+    for record in records:
+        nodes[record['ID']] = {
+            'ID': record['ID'],
+            'Modified': record['Modified'],
+            'Title': record['Title'],
+            'Introduction': record['Introduction'],
+            'MainContent': record['MainContent'],
+            'Summary': record['Summary'],
+            'ParentSectionID': record['ParentSectionID'],
+            'TopCategory': record['TopCategory'],
+            'FactCount': record['FactCount'],
+            'children': []
+        }
+
+    # Assign children to their respective parents
+    for node in nodes.values():
+        parent_id = node['ParentSectionID']
+        if parent_id and parent_id in nodes:
+            nodes[parent_id]['children'].append(node)
+        elif not parent_id:
+            # If no parent ID, this is a root node
+            tree[node['ID']] = node
+    formatted_tree = format_tree(tree)
+    return formatted_tree
+
+def format_tree(tree):
+    def format_node(node):
+        # Create the formatted data structure for a single node
+        formatted_node = {
+            'data': {
+                'sectionTitle': node['Title'],
+                'sectionContent': {
+                    'introduction': node['Introduction'],
+                    'mainContent': node['MainContent'],
+                    'summary': node['Summary']
+                },
+                'subsections': [format_node(child) for child in node['children']]
+            },
+            'time': node['Modified'].strftime("%m/%d/%y %I:%M%p")  # Adjust date format if needed
+        }
+        return formatted_node
+
+    # Handle multiple root nodes (top-level sections without parents)
+    formatted_output = [format_node(root) for root_id, root in tree.items()]
+    return formatted_output
+
 
 def get_all_proper_nouns():
     connection = get_db_connection()

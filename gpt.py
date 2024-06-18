@@ -2,10 +2,9 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import json
 import time
-from database import *
 from summary_creator import *
 from decorators import timing_decorator
-from sqldb import add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, get_all_facts, sql_get_or_create_conversation, sql_update_conversation_history, vector_query
+from sqldb import add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, get_all_facts, sql_get_or_create_conversation, sql_update_conversation_history, vector_query, check_for_taxonomy_update
 
 load_dotenv()
 client = OpenAI()
@@ -23,7 +22,7 @@ with open('prompts/Overview_Prompt.txt', 'r', encoding='utf-8') as file:
 with open('prompts/Taxonomy_Prompt.txt', 'r', encoding='utf-8') as file:
     taxonomy_message_text = file.read().strip()
 
-@timing_decorator
+
 def get_gpt_response(messages_for_gpt):
     """Get a response from the GPT model."""
     completion = client.chat.completions.create(
@@ -51,7 +50,6 @@ def fetch_context():
 
     return context
 
-@timing_decorator
 def call_get_fact_response(messages_for_fact, user_id):
     """Call get_fact_response in a separate thread."""
     fact_response_json = get_gpt_json_response(messages_for_fact)
@@ -73,10 +71,9 @@ def process_new_information(fact_response_json, user_id):
             new_added["noun"] = True
         
         print("New Info:", new_info)
+        check_for_taxonomy_update()
     return new_added
 
-
-@timing_decorator
 def get_gpt_json_response(messages_for_fact):
     """Get a response from the GPT model focused on facts."""
     fact_completion = client.chat.completions.create(
@@ -136,7 +133,6 @@ def get_welcome_message():
     response_text = get_gpt_response(messages_for_welcome)
     return response_text
 
-@timing_decorator
 def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
     conversation = sql_get_or_create_conversation(conversation_id, user_id)

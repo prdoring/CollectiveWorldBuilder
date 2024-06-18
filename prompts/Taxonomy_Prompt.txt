@@ -2,4 +2,4 @@ Based on the given facts provided in this database about the given category of t
 
 the output should be formatted as such
 
-{category_name:[subcat1, subcat2, ...]}
+{category_name:[subcat1:[subsubcat1:[subsubsubcat1,...],...], subcat2, ...]}

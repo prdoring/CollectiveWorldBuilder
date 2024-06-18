@@ -11,11 +11,20 @@
 </head>
 <body>
     <div class="index">
-        <h3>Index</h3>
+        <h3>Index
+        <label class="switch">
+            <input type="checkbox" id="toggleSwitch">
+            <span class="slider round">
+                <span class="slider-text">Detailed</span>
+            </span>
+        </label></h3>
         {% for section in sections %}
             <a href="#{{ section.data.sectionTitle|replace(' ', '_') }}">{{ section.data.sectionTitle }}</a>
             {% for subsection in section.data.subsections %}
-                <a class="subsectionlink" href="#{{ section.data.sectionTitle|replace(' ', '_') }}-{{  subsection.subsectionTitle|replace(' ', '_') }}">--{{ subsection.subsectionTitle }}</a>
+                <a class="subsectionlink" href="#{{ section.data.sectionTitle|replace(' ', '_') }}-{{  subsection.data.sectionTitle|replace(' ', '_') }}">{{ subsection.data.sectionTitle }}</a>
+                {% for subsub in subsection.data.subsections %}
+                    <a class="subsubsectionlink hidden" href="#{{ subsub.data.sectionTitle|replace(' ', '_') }}-{{  subsub.data.sectionTitle|replace(' ', '_') }}">{{ subsub.data.sectionTitle }}</a>
+                {% endfor %}
             {% endfor %}
         {% endfor %}
         
@@ -30,21 +39,31 @@
                 <p class="introduction">{{ section.data.sectionContent.introduction }}</p>
                 <p class="summary">{{ section.data.sectionContent.summary }}</p>
                 <p class="main-content">{{ section.data.sectionContent.mainContent }}</p>
-                <hr>
                 {% for subsection in section.data.subsections %}
-                    <div class="content-block" id="{{ section.data.sectionTitle|replace(' ', '_') }}-{{  subsection.subsectionTitle|replace(' ', '_') }}">
-                        <h4>{{ subsection.subsectionTitle }} </h4>
-                        <p class="summary">{{ subsection.subsectionContent.summary }}</p>
-                        <p class="main-content">{{ subsection.subsectionContent.mainContent }}</p>
+                    <div class="content-block sub-content" id="{{ section.data.sectionTitle|replace(' ', '_') }}-{{  subsection.data.sectionTitle|replace(' ', '_') }}">
+                        <h4>{{ subsection.data.sectionTitle }} </h4>
+                        <p class="summary">{{ subsection.data.sectionContent.summary }}</p>
+                        <p class="main-content">{{ subsection.data.sectionContent.mainContent }}</p>
+                        
                         <hr>
                     </div>
-                    {% for subsub in subsection.subsections %}
-                        <div class="content-block">
-                            <h5>{{ subsub.subsectionTitle }}</h5>
-                            <p class="summary">{{ subsub.subsectionContent.summary }}</p>
-                            <p class="main-content">{{ subsub.subsectionContent.mainContent }}</p>
-                            <hr>
+                    {% for subsub in subsection.data.subsections %}
+                        <div class="content-block sub-sub-content" id="{{ subsub.data.sectionTitle|replace(' ', '_') }}-{{  subsub.data.sectionTitle|replace(' ', '_') }}">
+                            <h5>{{ subsub.data.sectionTitle }}</h5>
+                            <p class="summary">{{ subsub.data.sectionContent.summary }}</p>
+                            <p class="main-content">{{ subsub.data.sectionContent.mainContent }}</p>
+                            {% if subsub.data.sectionContent.mainContent %}
+                                <hr>
+                            {% endif %}
                         </div>
+                        {% for subsubsub in subsub.data.subsections %}
+                            <div class="content-block sub-sub-sub-content">
+                                <h5>{{ subsubsub.data.sectionTitle }}</h5>
+                                <p class="summary">{{ subsubsub.data.sectionContent.summary }}</p>
+                                <p class="main-content">{{ subsubsub.data.sectionContent.mainContent }}</p>
+                                <hr>
+                            </div>
+                        {% endfor %}
                     {% endfor %}
                 {% endfor %}
             </div>
@@ -106,7 +125,22 @@
             }
     
             replaceProperNouns();
+
+
+            const toggleSwitch = document.getElementById('toggleSwitch');
+            const toggleableElements = document.querySelectorAll('.subsubsectionlink');
+
+             toggleSwitch.addEventListener('change', function() {
+                toggleableElements.forEach(element => {
+                    if (toggleSwitch.checked) {
+                        element.classList.remove('hidden');
+                    } else {
+                        element.classList.add('hidden');
+                    }
+                });
+            });
         });
+
     </script>
     
 </body>

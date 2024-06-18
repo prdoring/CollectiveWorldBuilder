@@ -20,27 +20,32 @@ body {
     padding: 0;
 }
 h1, h2, h3, h4, h5, h6 {
-    color: #f8f8f8; /* Light text color */
-    margin: 10px 0;
+    color: #f8f8f8 !important; /* Light text color */
+    margin: 10px 0 !important;
+    font-weight: bold;
 }
+
 h4 {
-    margin-left: -5px;
+    font-size: 20px !important;
+    margin-left: -5px !important;
 }
 h1 {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 24px !important;
+    font-weight: 600 !important;
 }
 h2 {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 26px !important;
+    font-weight: 600 !important;
 }
-h3, h4, h5, h6 {
-    font-weight: 600;
+h5, h6 {
+    
+    font-size: 17px !important;
+    font-weight: 600 !important;
 }
 p, li {
-    font-size: 16px;
-    line-height: 1.6;
-    margin: 5px 0;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    margin: 5px 0 !important;
 }
 .content-block {
     margin: 10px;
@@ -48,6 +53,14 @@ p, li {
     padding-top: 0px;
     padding-bottom: 0px;
     background-color: #333; /* Darker background color for content blocks */
+}
+
+
+.sub-sub-content {
+    margin-left:2%
+}
+.sub-sub-sub-content {
+    margin-left:4%
 }
 
 .main {
@@ -118,8 +131,74 @@ hr {
 }
 
 .subsectionlink {
-    opacity: 50%;
+    opacity: 80%;
     font-size: 70%;
+    margin-left: 5px;
+}
+.subsubsectionlink {
+    margin-left: 10px;
+    opacity: 60%;
+    font-size: 60%;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 4px;
+    left: 10px;
+    right: 0;
+    bottom: -4px;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: -6px;
+    bottom: 0px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.slider-text {
+    font-size:10px;
+    color: #303030;
+    font-weight: bold;
+    transition: opacity .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(60px);
+}
+
+input:checked + .slider .slider-text {
+    opacity: 1;
+    color:white;
 }
 
 .updateTime {
@@ -140,6 +219,8 @@ hr {
     cursor: pointer;
     color: rgb(146, 126, 169);
 }
+
+
 
 .tooltip .tooltiptext {
     visibility: hidden;
@@ -170,6 +251,10 @@ hr {
     opacity: 0 !important;
 }
 
+.hidden {
+    display: none !important;
+}
+
 @media (max-width: 768px) {
     .index {
         position: static; /* Change from fixed to static */
@@ -183,9 +268,10 @@ hr {
         border-bottom: 1px solid #ccc;
     }
 
-    .subsectionlink {
+    .subsectionlink, .subsubsectionlink, .switch {
         display: none !important;
     }
+    
 
     .index a {
         display: inline-block;

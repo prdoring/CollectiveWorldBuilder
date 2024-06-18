@@ -5,14 +5,12 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from tinydb import Query
 from dotenv import load_dotenv
 import os
-import threading
 from summary_creator import *
-from database import *
 from gpt import *
 from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
-from sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations
+from sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations, get_overview_data
 from decorators import timing_decorator
 from emitters import *
 
@@ -106,19 +104,9 @@ def home():
 
 @app.route('/overview')
 @local_login_required
-def overview():
-    dat = []
-    for category in categories_list:
-        dbs = init_dbs()
-        overviewQuery = Query()
-        snc = dbs["overview_table"].search(overviewQuery.category == category)
-        if(snc):
-            print(snc[0]['time'])
-            dat.append({'data':snc[0]['data']['wikiSection'],'time':snc[0]['time']})
-    
+def overview():   
     all_proper_nouns = get_all_proper_nouns()
-            
-    return render_template('overview.html', sections=dat, nouns=all_proper_nouns)
+    return render_template('overview.html', sections=get_overview_data(), nouns=all_proper_nouns)
 
 @app.route('/userfacts')
 @local_login_required

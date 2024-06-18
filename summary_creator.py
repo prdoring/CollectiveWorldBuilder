@@ -1,24 +1,38 @@
 import threading
-from database import update_overview_db
+from sqldb import clear_overview_category, insert_overview_entry, get_overview_data, get_category_fact_count, get_overview_category_fact_count
 from gpt import *
+import json
+
 
 def call_update_overview(category):
+    cat_count = get_category_fact_count(category)
+    # return if we are currently updating the category.
     context = fetch_context()
     taxonomy = call_update_taxonomy(category, context)
-    messages_for_overview = prepare_messages_for_overview(context, category, taxonomy)
-    response_text = get_gpt_json_response(messages_for_overview)
-    update_overview_db(category, response_text)
+    #Clear Old Entries from the DB
+    clear_overview_category(category)
+    print(category + " - Overview Cleared")
+    loop_taxonomy(taxonomy, taxonomy, top_category=category, context=context, cat_count=cat_count)
     print(category," Overview Updated")
 
-def prepare_messages_for_overview(context, category="", taxonomy=""):
-    
-    overviewQuery = Query()
-    overview = dbs["overview_table"].search(overviewQuery.category == category)
+def loop_taxonomy(obj, taxonomy, cat_count=0, top_category="", parent_category="", context=fetch_context()):
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            parent_category = insert_overview_entry(key,"","","",parent_category,top_category, cat_count)
+            loop_taxonomy(value, taxonomy, cat_count, top_category, parent_category, context)
+    elif isinstance(obj, list):
+        for item in obj:
+            loop_taxonomy(item, taxonomy, cat_count, top_category, parent_category, context)
+    else:
+        entry = get_gpt_response(prepare_messages_for_new_overview(context, taxonomy, obj))
+        insert_overview_entry(obj,"",entry,"",parent_category,top_category,cat_count)
+
+
+def prepare_messages_for_new_overview(context, taxonomy, category):
 
     messages_for_overview = [
         {"role": "system", "content": context },
-        {"role": "system", "content": "This is the current wiki page to be updated" + str(overview) },
-        {"role": "user", "content": "This Wiki section is about "+ category +" "+overview_message_text+ "\n Use the following taxonomy to structure the information"+str(taxonomy)}
+        {"role": "user", "content": "IMPORTANT! DO NOT USE MARKEDOWN, your response should only be text, without explination or formatting.  Based on the information provided and only the information provided Please provied a one paragraph entry for a wiki about "+ category + "containing information with respect to it's place in the following information taxonomy: "+json.dumps(taxonomy)}
     ]
     return messages_for_overview
 
