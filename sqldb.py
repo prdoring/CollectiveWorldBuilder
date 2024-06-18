@@ -209,6 +209,8 @@ def check_for_taxonomy_update():
     cat_counts = ""
     for category, count in category_count.items():
         ov_cat_count = overview_count[category]
+        if not ov_cat_count:
+            ov_cat_count = 0
         if count - ov_cat_count > max_fact_delta_for_overview_update:
             print(f"{category}: {count} - UPDATING OVERVIEW with {(count-ov_cat_count)} new facts")
             sc.start_update_overview(category)
