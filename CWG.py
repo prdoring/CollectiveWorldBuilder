@@ -6,13 +6,13 @@ from tinydb import Query
 from dotenv import load_dotenv
 import os
 from summary_creator import *
-from gpt import *
+from apis.gpt import *
 from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
-from sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations, get_overview_data
-from decorators import timing_decorator
-from emitters import *
+from apis.sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations, get_overview_data
+from util.decorators import timing_decorator
+from transport.emitters import *
 
 load_dotenv()
 

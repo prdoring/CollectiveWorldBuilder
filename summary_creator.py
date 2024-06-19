@@ -1,6 +1,6 @@
 import threading
-from sqldb import clear_overview_category, insert_overview_entry, get_overview_data, get_category_fact_count, get_overview_category_fact_count
-from gpt import *
+from apis.sqldb import clear_overview_category, insert_overview_entry, get_overview_data, get_category_fact_count, get_overview_category_fact_count
+from apis.gpt import *
 import json
 
 

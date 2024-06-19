@@ -1,8 +1,8 @@
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask import Flask, redirect, url_for, session, render_template, request, current_app
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from sqldb import get_user_fact_count, sql_get_or_create_conversation, get_all_proper_nouns, get_user_conversations
-from gpt import get_welcome_message
+from apis.sqldb import get_user_fact_count, sql_get_or_create_conversation, get_all_proper_nouns, get_user_conversations
+from apis.gpt import get_welcome_message
 from config import Config
 
 def emit_existing_comversations(existing_conversations):

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import json
 import os
-from decorators import timing_decorator
+from util.decorators import timing_decorator
 import summary_creator as sc
 import uuid
 import datetime
@@ -215,7 +215,7 @@ def check_for_taxonomy_update():
             print(f"{category}: {count} - UPDATING OVERVIEW with {(count-ov_cat_count)} new facts")
             sc.start_update_overview(category)
         else:
-            print(f"{category}: {count} - OVER:{ov_cat_count}")
+            print(f"{category}: FactDB:{count} - Overview:{ov_cat_count}")
     return cat_counts
 
 def get_overview_data():
