@@ -4,7 +4,7 @@ from openai import OpenAI
 import json
 import os
 from util.decorators import timing_decorator
-import summary_creator as sc
+import util.summary_creator as sc
 import uuid
 import datetime
 

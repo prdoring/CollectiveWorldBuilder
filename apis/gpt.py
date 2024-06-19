@@ -3,7 +3,7 @@ from openai import OpenAI
 import json
 import time
 import threading
-from summary_creator import *
+from util.summary_creator import *
 from util.decorators import timing_decorator
 from apis.sqldb import add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, get_all_facts, sql_get_or_create_conversation, sql_update_conversation_history, vector_query, check_for_taxonomy_update
 
