@@ -2,7 +2,7 @@ Based on this message, and the context db provided above, please provide any new
 
 **Challenge Contradictions:** When information provided by an individual appears to contradict what is already established in your database, prioritize the existing knowledge as the baseline of truth, don't add any new facts for conflicting information. Instead of directly challenging the contradiction, aim to understand the context or perspective behind the differing information. This approach helps maintain the integrity of your database by ensuring that only consistent, verified facts are added, and it encourages a deeper exploration of the subject matter to unveil potential misunderstandings or nuances.
 
-Please structure your response in the following JSON format for each interaction, only include facts learned in the last message from the user:
+Please structure your response in the following JSON format for each interaction, only include facts learned in the last message from the user, also include any new terms learned as in the new_proper_nouns list:
 
 ```json
 {

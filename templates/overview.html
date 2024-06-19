@@ -1,3 +1,4 @@
+{% import 'macros.html' as macros %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,36 +40,11 @@
                 <p class="introduction">{{ section.data.sectionContent.introduction }}</p>
                 <p class="summary">{{ section.data.sectionContent.summary }}</p>
                 <p class="main-content">{{ section.data.sectionContent.mainContent }}</p>
-                {% for subsection in section.data.subsections %}
-                    <div class="content-block sub-content" id="{{ section.data.sectionTitle|replace(' ', '_') }}-{{  subsection.data.sectionTitle|replace(' ', '_') }}">
-                        <h4>{{ subsection.data.sectionTitle }} </h4>
-                        <p class="summary">{{ subsection.data.sectionContent.summary }}</p>
-                        <p class="main-content">{{ subsection.data.sectionContent.mainContent }}</p>
-                        
-                        <hr>
-                    </div>
-                    {% for subsub in subsection.data.subsections %}
-                        <div class="content-block sub-sub-content" id="{{ subsub.data.sectionTitle|replace(' ', '_') }}-{{  subsub.data.sectionTitle|replace(' ', '_') }}">
-                            <h5>{{ subsub.data.sectionTitle }}</h5>
-                            <p class="summary">{{ subsub.data.sectionContent.summary }}</p>
-                            <p class="main-content">{{ subsub.data.sectionContent.mainContent }}</p>
-                            {% if subsub.data.sectionContent.mainContent %}
-                                <hr>
-                            {% endif %}
-                        </div>
-                        {% for subsubsub in subsub.data.subsections %}
-                            <div class="content-block sub-sub-sub-content">
-                                <h5>{{ subsubsub.data.sectionTitle }}</h5>
-                                <p class="summary">{{ subsubsub.data.sectionContent.summary }}</p>
-                                <p class="main-content">{{ subsubsub.data.sectionContent.mainContent }}</p>
-                                <hr>
-                            </div>
-                        {% endfor %}
-                    {% endfor %}
-                {% endfor %}
+                {% if section.data.subsections %}
+                    {{ macros.render_subsections(section.data.subsections, section.data.sectionTitle) }}
+                {% endif %}
             </div>
         {% endfor %}
-
     </div>
     <script>
         let properNouns = [

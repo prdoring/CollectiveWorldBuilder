@@ -89,10 +89,22 @@ def add_new_fact_to_db(text, user, category, embedding):
 def add_new_noun_to_db(word, definition, embedding):
     connection = get_db_connection()
     try:
-        with connection.cursor() as cursor:
-            sql = "INSERT INTO proper_nouns (id, word, definition, vector) VALUES (UUID(), %s, %s, JSON_ARRAY_PACK(%s))"
-            cursor.execute(sql, (word, definition, json.dumps(embedding)))
-        connection.commit()
+         with connection.cursor() as cursor:
+            # Check if the word already exists in the table
+            sql_check = "SELECT id FROM proper_nouns WHERE word = %s"
+            cursor.execute(sql_check, (word,))
+            result = cursor.fetchone()
+            
+            if result:
+                # If the word exists, update the entry
+                sql_update = "UPDATE proper_nouns SET definition = %s, vector = JSON_ARRAY_PACK(%s) WHERE id = %s"
+                cursor.execute(sql_update, (definition, json.dumps(embedding), result['id']))
+            else:
+                # If the word does not exist, insert a new entry
+                sql_insert = "INSERT INTO proper_nouns (id, word, definition, vector) VALUES (UUID(), %s, %s, JSON_ARRAY_PACK(%s))"
+                cursor.execute(sql_insert, (word, definition, json.dumps(embedding)))
+            
+            connection.commit()
     finally:
         connection.close()
 

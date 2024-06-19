@@ -1,0 +1,22 @@
+{% macro loop_subsections(subsections, parentTitle) %}
+    {% for subsection in subsections %}
+        <a class="subsectionlink" href="#{{ parentTitle|replace(' ', '_') }}-{{ subsection.data.sectionTitle|replace(' ', '_') }}">{{ subsection.data.sectionTitle }}</a>
+        {% if subsection.data.subsections %}
+            {{ loop_subsections(subsection.data.subsections, subsection.data.sectionTitle) }}
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_subsections(subsections, parentTitle) %}
+    {% for subsection in subsections %}
+        <div class="content-block sub-content" id="{{ parentTitle|replace(' ', '_') }}-{{ subsection.data.sectionTitle|replace(' ', '_') }}">
+            <h4>{{ subsection.data.sectionTitle }} </h4>
+            <p class="summary">{{ subsection.data.sectionContent.summary }}</p>
+            <p class="main-content">{{ subsection.data.sectionContent.mainContent }}</p>
+            {% if subsection.data.subsections %}
+                {{ render_subsections(subsection.data.subsections, subsection.data.sectionTitle) }}
+            {% endif %}
+            <hr>
+        </div>
+    {% endfor %}
+{% endmacro %}

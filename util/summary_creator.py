@@ -1,18 +1,28 @@
 import threading
 from apis.sqldb import clear_overview_category, insert_overview_entry, get_overview_data, get_category_fact_count, get_overview_category_fact_count
-from apis.gpt import *
+from apis.gpt import fetch_context, get_gpt_response, get_gpt_json_response, taxonomy_message_text
 import json
 
-
+currently_updating = []
 def call_update_overview(category):
     cat_count = get_category_fact_count(category)
     # return if we are currently updating the category.
+    if(category in currently_updating): 
+        print(category+" allready updating")
+        return
+    # Add to currently updating list
+    currently_updating.append(category)
     context = fetch_context()
     taxonomy = call_update_taxonomy(category, context)
     #Clear Old Entries from the DB
     clear_overview_category(category)
     print(category + " - Overview Cleared")
     loop_taxonomy(taxonomy, taxonomy, top_category=category, context=context, cat_count=cat_count)
+
+    #Remove from currently updating list
+    while(category in currently_updating):
+        currently_updating.remove(category)
+    
     print(category," Overview Updated")
 
 def loop_taxonomy(obj, taxonomy, cat_count=0, top_category="", parent_category="", context=fetch_context()):
