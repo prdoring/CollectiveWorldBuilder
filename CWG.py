@@ -22,7 +22,7 @@ load_dotenv()
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config.from_object(DevelopmentConfig if os.getenv('FLASK_ENV') == 'development' else ProductionConfig)
-
+socketio = SocketIO(app)
 # Set the secret key
 print(app.config['SECRET_KEY'])
 # Flask-Login setup
@@ -92,7 +92,7 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-socketio = SocketIO(app)
+
 
 check_for_taxonomy_update()
 
