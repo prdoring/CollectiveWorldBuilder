@@ -54,7 +54,6 @@ def load_user(user_id):
     return user
 
 def local_login_required(f):
-    print(app.config['ENV'])
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if app.config['ENV'] == 'development':
@@ -70,9 +69,7 @@ def mock_login():
         user.id = 'mockuser@example.com'  # Mock user ID or email
         session['profile_photo'] = "https://avatars.githubusercontent.com/u/17078488?v=4.jpg"
         user.profile_photo = "https://avatars.githubusercontent.com/u/17078488?v=4.jpg"
-        print(user)
         login_user(user)
-        print(current_user.profile_photo)
 
 
 # Google OAuth login route
@@ -97,6 +94,7 @@ def authorize():
 @local_login_required
 def logout():
     logout_user()
+    session.clear()  # Clear the session
     return redirect(url_for('home'))
 
 @app.route('/main')

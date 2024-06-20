@@ -12,7 +12,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
-
+{% if current_user.is_authenticated %}
+                <div class="user-menu">
+                    <img src="{{ current_user.profile_photo }}" alt="Profile Photo" class="profile-photo">
+                    <div class="dropdown">
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+{% endif %}
 <div class="container">
     <div class="conversations">
         <div class="hamburger-menu">
