@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 from util.summary_creator import *
 from apis.gpt import *
-from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
+from util.config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
 from apis.sqldb import (vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, 
@@ -22,6 +22,7 @@ load_dotenv()
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config.from_object(DevelopmentConfig if os.getenv('FLASK_ENV') == 'development' else ProductionConfig)
+print(app.config)
 socketio = SocketIO(app)
 # Flask-Login setup
 login_manager = LoginManager(app)
