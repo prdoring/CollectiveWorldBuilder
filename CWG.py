@@ -24,8 +24,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config.from_object(DevelopmentConfig if os.getenv('FLASK_ENV') == 'development' else ProductionConfig)
 
 # Set the secret key
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_default_secret_key')
-
+print(app.config['SECRET_KEY'])
 # Flask-Login setup
 login_manager = LoginManager(app)
 login_manager.login_view = "google_login"
