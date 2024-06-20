@@ -91,21 +91,12 @@ def authorize():
     return redirect(url_for('home'))
 
 @app.route('/logout')
-@local_login_required
 def logout():
-    # Revoke the token
-    token = google.token
-    if token:
-        google.post(
-            'https://accounts.google.com/o/oauth2/revoke',
-            params={'token': token['access_token']},
-            headers={'content-type': 'application/x-www-form-urlencoded'}
-        )
-    
-    # Logout the user
-    logout_user()
-    session.clear()  # Clear the session
-    return redirect(url_for('home'))
+    while 'google_token' in session:
+        session.pop('google_token')
+    while 'user' in session:
+        session.pop('user')
+    return redirect(url_for('main'))
 
 @app.route('/main')
 def main():
