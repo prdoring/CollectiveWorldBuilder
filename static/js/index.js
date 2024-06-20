@@ -118,7 +118,7 @@ function getDeleteButtonHtml(){
 
 function showConfirm(button, id) {
     // Change the button text to "Confirm"
-    button.textContent = 'Confirm';
+    button.textContent = 'Confirm (Will not delete lore)';
     button.className = 'confirm-button';
     button.setAttribute('onclick', 'deleteConversation("'+id+'")');
 }
