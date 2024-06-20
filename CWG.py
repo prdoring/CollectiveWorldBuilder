@@ -16,6 +16,7 @@ from apis.sqldb import (vector_query, get_facts_by_user, get_user_fact_count, ch
                         delete_conversation)
 from util.decorators import timing_decorator
 from transport.emitters import *
+import requests
 
 load_dotenv()
 
@@ -81,6 +82,7 @@ def google_login():
 @app.route('/authorize')
 def authorize():
     token = google.authorize_access_token()
+    session['token'] = token
     resp = google.get('userinfo')
     user_info = resp.json()
     user = User()
@@ -92,10 +94,22 @@ def authorize():
 
 @app.route('/logout')
 def logout():
-    while 'google_token' in session:
-        session.pop('google_token')
-    while 'user' in session:
-        session.pop('user')
+    token = session.get('token')  # Adjust this to the correct session key if needed
+    
+    # Revoke the token if it exists
+    if token:
+        revoke = requests.post(
+            'https://accounts.google.com/o/oauth2/revoke',
+            params={'token': token['access_token']},
+            headers={'content-type': 'application/x-www-form-urlencoded'}
+        )
+    
+    # Log out the user locally
+    logout_user()
+    
+    # Clear the session
+    session.clear()
+    
     return redirect(url_for('main'))
 
 @app.route('/main')
