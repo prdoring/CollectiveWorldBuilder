@@ -7,6 +7,7 @@ from util.decorators import timing_decorator
 import util.summary_creator as sc
 import uuid
 import datetime
+from util.config import Config
 
 load_dotenv()
 client = OpenAI()
@@ -49,8 +50,6 @@ overview_count = {
     "Outside Influences": 0,
     "Other": 0
 }
-
-max_fact_delta_for_overview_update = 4
 
 # Establish a connection to the database
 def get_db_connection():
@@ -112,7 +111,7 @@ def get_facts_by_user(userid):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT textv, category FROM facts_vector WHERE userid = %s ORDER BY category;"
+            sql = "SELECT id, textv, category FROM facts_vector WHERE userid = %s ORDER BY category;"
             cursor.execute(sql, (userid))
             result = cursor.fetchall()
 
@@ -121,8 +120,20 @@ def get_facts_by_user(userid):
                 category = fact['category']
                 if category not in categorized_facts:
                     categorized_facts[category] = []
-                categorized_facts[category].append(fact['textv'])
+                categorized_facts[category].append({'id':fact['id'],'fact':fact['textv']})
             return categorized_facts
+    finally:
+        connection.close() 
+
+def delete_user_fact(userid, factid):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM facts_vector WHERE userid = %s AND id = %s"
+            cursor.execute(sql, (userid,factid,))
+            result = cursor.fetchall()
+            connection.commit()
+            check_for_taxonomy_update()
     finally:
         connection.close() 
 
@@ -217,17 +228,18 @@ def check_for_taxonomy_update():
         count = row['FactCount']
         overview_count[category] = count
 
-    print("Facts count by category:")
+    print(f"Facts count by category (Update at delta {Config.MAX_FACT_DELTA_FOR_OV_UPDATE}):")
     cat_counts = ""
     for category, count in category_count.items():
         ov_cat_count = overview_count[category]
         if not ov_cat_count:
             ov_cat_count = 0
-        if count - ov_cat_count > max_fact_delta_for_overview_update:
+        delta = abs(count - ov_cat_count)
+        if delta > Config.MAX_FACT_DELTA_FOR_OV_UPDATE:
             print(f"{category}: {count} - UPDATING OVERVIEW with {(count-ov_cat_count)} new facts")
             sc.start_update_overview(category)
         else:
-            print(f"{category}: FactDB:{count} - Overview:{ov_cat_count}")
+            print(f"{category}: FactDB:{count} - Overview:{ov_cat_count} (Delta: {delta})")
     return cat_counts
 
 def get_overview_data():

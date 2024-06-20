@@ -8,6 +8,7 @@ class Config:
     GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
     GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
     DATABASE_AGENT_NAME = "DATABASE"
+    MAX_FACT_DELTA_FOR_OV_UPDATE = 5
 
 class DevelopmentConfig(Config):
     DEBUG = True

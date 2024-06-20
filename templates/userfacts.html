@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.webp') }}">
     <title>User Facts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/userfacts.css') }}">
+
 </head>
 <body>
     <div id="bannerimage"></div>
@@ -16,7 +18,12 @@
             <h2>{{ category }}</h2>
             <ul>
                 {% for fact in facts %}
-                <li>{{ fact }}</li>
+                <li>
+                    {{ fact.fact }}
+                    <button class="delete-button" onclick="showConfirm(this,'{{fact.id}}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </li>
                 {% endfor %}
             </ul>
         </div>
@@ -24,6 +31,8 @@
     {% else %}
         <p>No facts available.</p>
     {% endif %}
-    <script src="{{ url_for('static', filename='js/overview.js') }}"></script>
+    
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/userfacts.js') }}"></script>
 </body>
 </html>

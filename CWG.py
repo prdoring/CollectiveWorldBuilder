@@ -10,7 +10,7 @@ from apis.gpt import *
 from util.config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
-from apis.sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations, get_overview_data
+from apis.sqldb import vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, get_user_conversations, get_overview_data, delete_user_fact
 from util.decorators import timing_decorator
 from transport.emitters import *
 
@@ -169,8 +169,13 @@ def request_welcome_message(data):
 def request_nouns(data):
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
-
     emit_proper_nouns()
+
+@socketio.on('delete_fact')
+def delete_fact(data):
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
+    delete_user_fact(current_user.id,data["id"])
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=6969)

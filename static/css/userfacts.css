@@ -5,9 +5,7 @@ body {
     margin: 0;
     padding: 20px;
     font-size: 16px;
-    
-    max-width:1750px;
-
+    max-width: 1750px;
 }
 h1 {
     color: #bb86fc;
@@ -20,7 +18,7 @@ div {
     padding: 15px;
     margin-bottom: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 ul {
     padding-left: 20px;
@@ -31,19 +29,36 @@ li {
 #bannerimage {
     width: 100%;
     background-image: url(../banner.png);
-    height:0;
+    height: 0;
     padding-top: 14%; /* (img-height / img-width * container-width) */
-        /* (853 / 1280 * 100) */
     max-height: 361px;
-    max-width:1708px;
-
+    max-width: 1708px;
     background-position: center-top;
-    background-size:100%;
-    background-repeat:no-repeat;
+    background-size: 100%;
+    background-repeat: no-repeat;
     border-bottom: 1px solid #ccc;
-
     background-color: transparent;
     margin-bottom: 0px;
     border-radius: 0px;
     box-shadow: 0;
+}
+button {
+    background-color: #bb86fc;
+    color: #121212;
+    border: none;
+    margin-left: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+button:hover {
+    background-color: #3700b3;
+}
+button.confirm-button {
+    background-color: #03dac6;
+    color: #121212;
+}
+button.confirm-button:hover {
+    background-color: #018786;
 }
