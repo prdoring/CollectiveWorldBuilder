@@ -91,6 +91,10 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+@app.route('/main')
+def main():
+    return render_template('main.html')
+
 @app.route('/')
 @local_login_required
 def home():
