@@ -7,7 +7,7 @@ from util.decorators import timing_decorator
 import util.summary_creator as sc
 import uuid
 import datetime
-from util.config import Config
+from config import Config
 
 load_dotenv()
 client = OpenAI()

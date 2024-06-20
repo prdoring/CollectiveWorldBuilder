@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 from util.summary_creator import *
 from apis.gpt import *
-from util.config import DevelopmentConfig, ProductionConfig  # Import configuration classes
+from config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
 from apis.sqldb import (vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, 
