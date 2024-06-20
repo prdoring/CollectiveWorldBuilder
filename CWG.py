@@ -50,14 +50,16 @@ class User(UserMixin):
 def load_user(user_id):
     user = User()
     user.id = user_id
+    user.profile_photo = session.get('profile_photo')
     return user
 
 def local_login_required(f):
+    print(app.config['ENV'])
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_app.config['ENV'] == 'development':
+        if app.config['ENV'] == 'development':
             mock_login()
-        if not current_user.is_authenticated:
+        elif not current_user.is_authenticated:
             return redirect(url_for('google_login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function
@@ -66,7 +68,11 @@ def mock_login():
     if not current_user.is_authenticated:
         user = User()
         user.id = 'mockuser@example.com'  # Mock user ID or email
+        session['profile_photo'] = "https://avatars.githubusercontent.com/u/17078488?v=4.jpg"
+        user.profile_photo = "https://avatars.githubusercontent.com/u/17078488?v=4.jpg"
+        print(user)
         login_user(user)
+        print(current_user.profile_photo)
 
 
 # Google OAuth login route
@@ -82,7 +88,9 @@ def authorize():
     user_info = resp.json()
     user = User()
     user.id = user_info['email']
+    user.profile_photo = user_info['picture']
     login_user(user)
+    session['profile_photo'] = user_info['picture']
     return redirect(url_for('home'))
 
 @app.route('/logout')

@@ -15,7 +15,7 @@
         <div class="nav-right">
             {% if current_user.is_authenticated %}
                 <div class="user-menu">
-                    <span>{{ current_user.id }}</span>
+                    <img src="{{ current_user.profile_photo }}" alt="Profile Photo" class="profile-photo">
                     <div class="dropdown">
                         <a href="{{ url_for('logout') }}">Logout</a>
                     </div>
