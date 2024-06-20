@@ -68,7 +68,7 @@ def process_new_information(fact_response_json, user_id):
             add_new_fact_to_vector_db(info["fact"], user_id, info["category"])
             info["user"] = user_id
         for noun in new_proper_nouns:
-            add_new_noun_to_vector_db(noun["word"],noun["definition"])
+            add_new_noun_to_vector_db(noun["word"],noun["definition"], user_id)
             new_added["noun"] = True
         
         print("New Info:", new_info)

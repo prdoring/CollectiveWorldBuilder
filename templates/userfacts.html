@@ -31,6 +31,19 @@
     {% else %}
         <p>No facts available.</p>
     {% endif %}
+        <div>
+            <h2>Definitions</h2>
+            <ul>
+                {% for noun in nouns %}
+                <li>
+                    {{ noun.word }} - {{ noun.definition }}
+                    <button class="delete-button" onclick="showConfirmNoun(this,'{{noun.id}}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
     
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/userfacts.js') }}"></script>

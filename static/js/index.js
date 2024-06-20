@@ -2,7 +2,6 @@ var socket = io();
 
 
 
-    
 function updateNouns(nouns){
     properNouns = nouns;
 }

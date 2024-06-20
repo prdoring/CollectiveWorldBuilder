@@ -69,9 +69,9 @@ def add_new_fact_to_vector_db(fact, user, category):
     vector = get_embedding(fact)
     add_new_fact_to_db(fact, user, category, vector)
 
-def add_new_noun_to_vector_db(word, definition):
+def add_new_noun_to_vector_db(word, definition, userid):
     vector = get_embedding(word+": "+definition)
-    add_new_noun_to_db(word, definition, vector)
+    add_new_noun_to_db(word, definition, vector, userid)
 
 # Insert data into the table
 def add_new_fact_to_db(text, user, category, embedding):
@@ -85,7 +85,7 @@ def add_new_fact_to_db(text, user, category, embedding):
         connection.close()
 
 # Insert data into the table
-def add_new_noun_to_db(word, definition, embedding):
+def add_new_noun_to_db(word, definition, embedding, userid):
     connection = get_db_connection()
     try:
          with connection.cursor() as cursor:
@@ -100,8 +100,8 @@ def add_new_noun_to_db(word, definition, embedding):
                 cursor.execute(sql_update, (definition, json.dumps(embedding), result['id']))
             else:
                 # If the word does not exist, insert a new entry
-                sql_insert = "INSERT INTO proper_nouns (id, word, definition, vector) VALUES (UUID(), %s, %s, JSON_ARRAY_PACK(%s))"
-                cursor.execute(sql_insert, (word, definition, json.dumps(embedding)))
+                sql_insert = "INSERT INTO proper_nouns (id, word, definition, vector, userid) VALUES (UUID(), %s, %s, JSON_ARRAY_PACK(%s), %s)"
+                cursor.execute(sql_insert, (word, definition, json.dumps(embedding),userid))
             
             connection.commit()
     finally:
@@ -125,6 +125,17 @@ def get_facts_by_user(userid):
     finally:
         connection.close() 
 
+def get_nouns_by_user(userid):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT id, word, definition FROM proper_nouns WHERE userid = %s ORDER BY word ASC;"
+            cursor.execute(sql, (userid))
+            result = cursor.fetchall()
+            return result
+    finally:
+        connection.close() 
+
 def delete_user_fact(userid, factid):
     connection = get_db_connection()
     try:
@@ -133,7 +144,20 @@ def delete_user_fact(userid, factid):
             cursor.execute(sql, (userid,factid,))
             result = cursor.fetchall()
             connection.commit()
+            print(f"deleted fact id: {factid}")
             check_for_taxonomy_update()
+    finally:
+        connection.close() 
+
+def delete_user_noun(userid, nounId):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM proper_nouns WHERE userid = %s AND id = %s"
+            cursor.execute(sql, (userid,nounId,))
+            result = cursor.fetchall()
+            connection.commit()
+            print(f"deleted noun id: {nounId}")
     finally:
         connection.close() 
 
