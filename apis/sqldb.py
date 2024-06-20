@@ -395,6 +395,18 @@ def sql_get_or_create_conversation(conversation_id, user, initial_message=""):
     finally:
         connection.close()
 
+def delete_conversation(conversation_id, user):  
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM chats WHERE chat_name = %s AND user = %s"
+            cursor.execute(sql, (conversation_id, user))
+            result = cursor.fetchall()
+            connection.commit()
+            print(f"deleted chat: {conversation_id}")
+    finally:
+        connection.close() 
+
 # Query data from the table
 @timing_decorator
 def vector_query(text, limit):

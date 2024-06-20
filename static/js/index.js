@@ -93,8 +93,34 @@ function joinConversation(conversationId) {
     document.getElementById('messages').innerHTML = ''; // Clear current messages
     document.getElementById('messageInput').disabled = false;
     document.querySelector('.btn.btn-primary').disabled = false;
-    document.getElementById('chatTitle').innerHTML = conversationId
+    document.getElementById('chatTitle').innerHTML = conversationId + getDeleteButtonHtml()
     document.querySelector('.conversations').classList.toggle('collapsed');
+}
+
+function deleteConversation(conversationId) {
+    socket.emit('delete_conversation', {conversation_id: conversationId});
+    currentConversationId = null;
+    document.getElementById('messages').innerHTML = ''; // Clear current messages
+    document.getElementById('messageInput').disabled = true;
+    document.querySelector('.btn.btn-primary').disabled = true;
+    document.getElementById('chatTitle').innerHTML = "";
+    var element = document.getElementById(conversationId);
+        if (element) {
+            element.remove();
+        }
+    
+    document.querySelector('.conversations').classList.remove('collapsed');
+}
+
+function getDeleteButtonHtml(){
+    return '<button class="delete-button" onclick="showConfirm(this,\''+currentConversationId+'\')"><i class="fas fa-trash-alt"></i></button>';
+}
+
+function showConfirm(button, id) {
+    // Change the button text to "Confirm"
+    button.textContent = 'Confirm';
+    button.className = 'confirm-button';
+    button.setAttribute('onclick', 'deleteConversation("'+id+'")');
 }
 
 

@@ -12,7 +12,8 @@ from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
 from apis.sqldb import (vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, 
                         get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, 
-                        get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, delete_user_noun)
+                        get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, delete_user_noun,
+                        delete_conversation)
 from util.decorators import timing_decorator
 from transport.emitters import *
 
@@ -160,6 +161,13 @@ def handle_leave_conversation(data):
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
     leave_room(data['conversation_id'])
+
+@socketio.on('delete_conversation')
+def handle_delete_conversation(data):
+    if not current_user.is_authenticated:
+        return False  # Or handle appropriately
+    leave_room(data['conversation_id'])
+    delete_conversation(data['conversation_id'], current_user.id)
 
 @socketio.on('request_welcome_message')
 def request_welcome_message(data):

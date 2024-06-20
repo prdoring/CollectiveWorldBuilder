@@ -297,6 +297,35 @@ body {
     opacity: 0;
 }
 
+.delete-button {
+    background-color: #bb86fc;
+    color: #121212;
+    border: none;
+    margin-left: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #3700b3;
+}
+
+button.confirm-button {
+    background-color: #03dac6;
+    color: #121212;
+    border: none;
+    margin-left: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+button.confirm-button:hover {
+    background-color: #018786;
+}
+
 .dot:nth-child(1) { animation-delay: -0.32s; }
 .dot:nth-child(2) { animation-delay: -0.16s; }
 
