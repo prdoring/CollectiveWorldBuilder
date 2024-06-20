@@ -47,7 +47,7 @@ body {
     padding: 10px;
     border-radius: 10px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
-    background-image: url(/static/banner.png);
+    background-image: url(/static/images/banner.png);
     background-size: 100%;
     background-repeat: no-repeat;
     background-position: bottom;
@@ -62,7 +62,7 @@ body {
     margin-bottom: 0;
     flex-grow: 1;
     
-    background-image: url("../icon.webp");
+    background-image: url(/static/images/icon.webp);
     background-position: center;
     background-size:80%;
     background-repeat:no-repeat;
@@ -406,7 +406,7 @@ button.confirm-button:hover {
 }
 #icon {
     width: 100%;
-    background-image: url("../icon.webp");
+    background-image: url(/static/images/icon.webp);
     height:0;
     padding-top: 14%; /* (img-height / img-width * container-width) */
         /* (853 / 1280 * 100) */

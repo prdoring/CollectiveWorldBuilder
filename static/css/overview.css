@@ -1,6 +1,6 @@
 #bannerimage {
     width: 100%;
-    background-image: url("../banner.png");
+    background-image: url(/static/images/banner.png);
     height:0;
     padding-top: 14%; /* (img-height / img-width * container-width) */
         /* (853 / 1280 * 100) */
