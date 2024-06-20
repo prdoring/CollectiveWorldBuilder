@@ -68,6 +68,14 @@
                         { word: "{{ noun.word }}", definition: "{{ noun.definition }}" },
                     {% endfor %}
                 ];
+
+    document.getElementById('logout-link').addEventListener('click', function(event) {
+            event.preventDefault();
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.trim().split("=")[0] + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;'; 
+            });
+            window.location.href = "{{ url_for('logout') }}";
+        });
 </script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 
