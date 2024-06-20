@@ -110,7 +110,7 @@ def logout():
     # Clear the session
     session.clear()
     
-    return redirect(url_for('main'))
+    return render_template('logout.html')
 
 @app.route('/main')
 def main():
