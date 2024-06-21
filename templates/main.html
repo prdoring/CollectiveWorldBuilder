@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
     <nav>
         <div class="nav-left">
-            <a href="/">Home</a>
+            <img src="{{ url_for('static', filename='images/favicon.webp') }}">
             <!-- Add more navigation links if needed -->
         </div>
+        We Made This World
         <div class="nav-right">
             {% if current_user.is_authenticated %}
                 <div class="user-menu">
@@ -25,9 +27,27 @@
             {% endif %}
         </div>
     </nav>
+    
     <main>
-        <h1>Welcome to the Main Page</h1>
-        <p><a href="/">Go To World Chat</a></p>
+        <h1>Your Worlds</h1>
+        <div class="world-tiles">
+            {% for world in Worlds %}
+                <div class="world-tile">
+                    <a href="/" class="tile-link">
+                        <img src="{{ url_for('static', filename='images/world_icons/' + world.id + '.jpg') }}" alt="{{ world.world_name }}">
+                        <div class="world-title">
+                            <h2>{{ world.world_name }}</h2> 
+                        </div>
+                        <div class="world-info">
+                            <div class="world-links">
+                                <a href="/overview" target="_blank" class="world-link external-link">World Overview</a>
+                                <a href="/userfacts" target="_blank" class="world-link external-link">Your Contributions</a>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
         <!-- Add more content here -->
     </main>
 </body>

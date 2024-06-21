@@ -13,7 +13,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from apis.sqldb import (vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, 
                         get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, 
                         get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, delete_user_noun,
-                        delete_conversation)
+                        delete_conversation, get_users_worlds)
 from util.decorators import timing_decorator
 from transport.emitters import *
 import requests
@@ -114,7 +114,8 @@ def logout():
 
 @app.route('/main')
 def main():
-    return render_template('main.html')
+    get_users_worlds(current_user.id)
+    return render_template('main.html', Worlds = get_users_worlds(current_user.id))
 
 @app.route('/')
 @local_login_required

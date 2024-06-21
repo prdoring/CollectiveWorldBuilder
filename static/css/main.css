@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     background-color: #121212;
     color: white;
 }
@@ -9,10 +9,34 @@ body {
 nav {
     display: flex;
     justify-content: space-between;
-    background-color: #333;
-    padding: 1rem;
+    background-color: #939ec4;
+    min-height: 45px;
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: 3px 4px 15px #939ec4;
+    text-align: center;
+    font-size: 220%;
+    font-weight: bolder;
+    padding: 5px;
+
+}
+
+.external-link::after {
+    content: " ↗";
+    font-size: smaller;
+}
+
+.bannerimage {
+    
+    width: 100%;
+    max-width: 700px;
+    min-height: 45px;
+    background-image: url(/static/images/banner.png);
+    background-position-x: left;
+    background-position-y: bottom;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    margin-left:-285px;
+
 }
 
 .nav-left a, .nav-right a {
@@ -20,6 +44,11 @@ nav {
     margin-right: 1rem;
     text-decoration: none;
     transition: color 0.3s ease;
+}
+
+.nav-left img {
+    max-height: 60px;
+    padding:5px;
 }
 
 .nav-left a:hover, .nav-right a:hover {
@@ -36,12 +65,15 @@ nav {
     display: none;
     position: absolute;
     background-color: #242424;
-    right:-10px;
+    right: -10px;
     color: white;
     box-shadow: 0 8px 16px rgba(0,0,0,0.5);
     padding: 0.5rem;
     border-radius: 5px;
     z-index: 5;
+    
+    font-size: 50% !important;
+    font-weight: bold !important;
 }
 
 .user-menu:hover .dropdown {
@@ -49,11 +81,13 @@ nav {
 }
 
 .profile-photo {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     margin-right: 10px;
     vertical-align: middle;
+    padding-top:5px;
+    padding-bottom:5px;
 }
 
 main {
@@ -65,6 +99,103 @@ main {
     border-radius: 10px;
     margin: 2% auto;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.world-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+}
+
+.world-tile {
+    position: relative;
+    background-color: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 200px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.world-tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.tile-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    position: relative;
+}
+
+.world-tile img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.world-tile:hover img {
+    transform: scale(1.05);
+}
+
+.world-info {
+    position: absolute;
+    top: 105px;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.world-info h2 {
+    font-size: 1.2em;
+    margin: 0;
+}
+
+.world-links {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.world-links {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    text-align: center;
+}
+
+.world-title {
+    position: absolute;
+    top: 0px;
+    left: 0;
+    right: 0;
+    color: white;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.world-link {
+    color: #007BFF;
+    text-decoration: none;
+    padding: 5px 0;
+    border: 1px solid transparent;
+    transition: color 0.3s ease, background-color 0.3s ease, border 0.3s ease;
+}
+
+.world-link:hover {
+    color: #ffffff;
+    background-color: #007BFF;
+    border: 1px solid #007BFF;
+    border-radius: 4px;
 }
 
 h1 {
@@ -96,4 +227,23 @@ button {
 button:hover {
     background-image: linear-gradient(to right, #004DBF, #007BFF);
     transform: translateY(-2px);
+}
+
+#bannerimage {
+    width: 100%;
+    background-image: url(/static/images/banner.png);
+    height: 0;
+    padding-top: 14%; /* (img-height / img-width * container-width) */
+    max-height: 361px;
+    max-width: 1708px;
+    background-position: center-top;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    border-bottom: 1px solid #ccc;
+    background-color: transparent;
+    margin-bottom: 0px;
+    border-radius: 0px;
+    box-shadow: 0;
+    margin-top:-110px;
+    z-index: 0;
 }

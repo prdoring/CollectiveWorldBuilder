@@ -407,6 +407,33 @@ def delete_conversation(conversation_id, user):
     finally:
         connection.close() 
 
+def get_users_worlds(user_id):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            # First query to get user worlds
+            sql = "SELECT * FROM users_worlds WHERE user_id = %s;"
+            cursor.execute(sql, (user_id,))
+            user_worlds = cursor.fetchall()
+            print("User Worlds:", user_worlds)
+            
+            # Extracting world_ids
+            world_ids = [uw['world_id'] for uw in user_worlds]
+            
+            # If there are no world_ids, return an empty list
+            if not world_ids:
+                return []
+
+            # Second query to get worlds
+            format_strings = ','.join(['%s'] * len(world_ids))
+            sql = f"SELECT * FROM worlds WHERE id IN ({format_strings});"
+            cursor.execute(sql, world_ids)
+            worlds = cursor.fetchall()
+            print("Worlds:", worlds)
+            
+            return worlds
+    finally:
+        connection.close()
 # Query data from the table
 @timing_decorator
 def vector_query(text, limit):
