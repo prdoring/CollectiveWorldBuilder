@@ -112,16 +112,16 @@ def logout():
     
     return render_template('logout.html')
 
-@app.route('/main')
-def main():
+@app.route('/')
+def home():
     if not current_user.is_authenticated:
         return render_template('main.html', Worlds = [])
     
     return render_template('main.html', Worlds = get_users_worlds(current_user.id))
 
-@app.route('/')
+@app.route('/chat')
 @local_login_required
-def home():
+def chat():
     print(f"User {current_user.id} accessed the home page.")
     print("Entries For ",current_user.id, ": ", get_user_fact_count(current_user.id))
 

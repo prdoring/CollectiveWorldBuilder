@@ -8,12 +8,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
+<main>
     <nav>
         <div class="nav-left">
-            <img src="{{ url_for('static', filename='images/favicon.webp') }}">
             <!-- Add more navigation links if needed -->
         </div>
-        We Made This World
         <div class="nav-right">
             {% if current_user.is_authenticated %}
                 <div class="user-menu">
@@ -28,20 +27,22 @@
         </div>
     </nav>
     
-    <main>
+    
+    {% if current_user.is_authenticated %}
         <h1>Your Worlds</h1>
+    {%endif%}
         <div class="world-tiles">
             {% for world in Worlds %}
                 <div class="world-tile">
-                    <a href="/" class="tile-link">
+                    <a href="{{ url_for('chat') }}" class="tile-link">
                         <img src="{{ url_for('static', filename='images/world_icons/' + world.id + '.jpg') }}" alt="{{ world.world_name }}">
                         <div class="world-title">
                             <h2>{{ world.world_name }}</h2> 
                         </div>
                         <div class="world-info">
                             <div class="world-links">
-                                <a href="/overview" target="_blank" class="world-link external-link">World Overview</a>
-                                <a href="/userfacts" target="_blank" class="world-link external-link">Your Contributions</a>
+                                <a href="{{ url_for('overview') }}" target="_blank" class="world-link external-link">World Overview</a>
+                                <a href="{{ url_for('user_facts') }}" target="_blank" class="world-link external-link">Your Contributions</a>
                             </div>
                         </div>
                     </a>

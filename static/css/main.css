@@ -8,15 +8,24 @@ body {
 
 nav {
     display: flex;
+    width: 90vw;
+
+    align-items: center;
     justify-content: space-between;
-    background-color: #939ec4;
+    background-color: #333333;
     min-height: 45px;
     color: white;
-    box-shadow: 3px 4px 15px #939ec4;
+    box-shadow: 3px 4px 15px #333333;
     text-align: center;
     font-size: 220%;
     font-weight: bolder;
     padding: 5px;
+    background-image: url(/static/images/banner.png);
+    background-position-x: center;
+    background-position-y: bottom;
+    background-size: clamp(1000px, 75%, 1500px) auto;
+    background-repeat: no-repeat;
+    margin-bottom: 20px;
 
 }
 
@@ -94,10 +103,13 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 0px;
+    width: 90vw;
     background-color: #181818;
     border-radius: 10px;
     margin: 2% auto;
+    
+    margin-top: 0px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -106,6 +118,7 @@ main {
     flex-wrap: wrap;
     gap: 16px;
     justify-content: center;
+    padding-bottom: 20px;
 }
 
 .world-tile {
@@ -146,7 +159,6 @@ main {
     top: 105px;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.6);
     color: white;
     text-align: center;
     transition: background 0.3s ease;
@@ -178,16 +190,32 @@ main {
     top: 0px;
     left: 0;
     right: 0;
-    color: white;
+    color: #ffffff;
+    background-color: #007bff5c;
+    border: 1px solid #007bff5a;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.world-title:hover {
+    position: absolute;
+    top: 0px;
+    left: 0;
+    right: 0;
+    background-color: #007BFF;
+    border: 1px solid #007BFF;
+    border: 1px solid #007bff5a;
     text-align: center;
     transition: background 0.3s ease;
 }
 
 .world-link {
-    color: #007BFF;
+    color: #ffffff;
+    background-color: #007bff5c;
+    border: 1px solid #007bff5a;
     text-decoration: none;
     padding: 5px 0;
-    border: 1px solid transparent;
+    border-radius: 4px;
     transition: color 0.3s ease, background-color 0.3s ease, border 0.3s ease;
 }
 
@@ -201,6 +229,7 @@ main {
 h1 {
     margin-bottom: 20px;
     color: #ffffff;
+    font-size: 20px;
 }
 
 p {
