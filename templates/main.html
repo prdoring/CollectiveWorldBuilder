@@ -31,7 +31,7 @@
     
     {% if current_user.is_authenticated %}
         <h1>Your Worlds</h1>
-    {%endif%}
+    
         <div class="world-tiles">
             {% for world in Worlds %}
                 <div class="world-tile">
@@ -49,6 +49,9 @@
                     </a>
                 </div>
             {% endfor %}
+    {% else %}
+         <h1>Please sign in to access your worlds...</h1>
+    {% endif %}
         </div>
         <!-- Add more content here -->
     </main>
