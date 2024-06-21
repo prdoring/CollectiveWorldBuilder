@@ -272,7 +272,9 @@ body {
 }
 
 .profile-photo {
-
+    position:absolute;
+    right:20px;
+    top:20px;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -284,6 +286,7 @@ body {
     display: none;
     position: absolute;
     right:0px;
+    top:60px;
     background-color: #242424;
     color: white;
     box-shadow: 0 8px 16px rgba(0,0,0,0.5);
