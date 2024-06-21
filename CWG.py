@@ -114,7 +114,9 @@ def logout():
 
 @app.route('/main')
 def main():
-    get_users_worlds(current_user.id)
+    if not current_user.is_authenticated:
+        return render_template('main.html', Worlds = [])
+    
     return render_template('main.html', Worlds = get_users_worlds(current_user.id))
 
 @app.route('/')

@@ -415,7 +415,6 @@ def get_users_worlds(user_id):
             sql = "SELECT * FROM users_worlds WHERE user_id = %s;"
             cursor.execute(sql, (user_id,))
             user_worlds = cursor.fetchall()
-            print("User Worlds:", user_worlds)
             
             # Extracting world_ids
             world_ids = [uw['world_id'] for uw in user_worlds]
@@ -429,7 +428,6 @@ def get_users_worlds(user_id):
             sql = f"SELECT * FROM worlds WHERE id IN ({format_strings});"
             cursor.execute(sql, world_ids)
             worlds = cursor.fetchall()
-            print("Worlds:", worlds)
             
             return worlds
     finally:
