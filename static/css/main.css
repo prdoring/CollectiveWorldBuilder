@@ -23,7 +23,7 @@ nav {
     background-image: url(/static/images/banner.png);
     background-position-x: center;
     background-position-y: bottom;
-    background-size: clamp(1000px, 75%, 1500px) auto;
+    background-size: clamp(1000px, 75%, 800px) auto;
     background-repeat: no-repeat;
     margin-bottom: 20px;
 
