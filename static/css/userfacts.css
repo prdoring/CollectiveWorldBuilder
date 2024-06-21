@@ -30,7 +30,10 @@ div {
     
 }
 .section {
+
+    width: 85vw;
     min-width: 85vw;
+    max-width: 85vw;
 }
 ul {
     padding-left: 20px;
