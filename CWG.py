@@ -52,6 +52,8 @@ def load_user(user_id):
     user = User()
     user.id = user_id
     user.profile_photo = session.get('profile_photo')
+    if not session.get('user_worlds'):
+        session['user_worlds'] = get_users_worlds(user.id)
     return user
 
 def local_login_required(f):
@@ -69,6 +71,7 @@ def mock_login():
         user = User()
         user.id = 'mockuser@example.com'  # Mock user ID or email
         session['profile_photo'] = "https://avatars.githubusercontent.com/u/17078488?v=4.jpg"
+        session['user_worlds'] = get_users_worlds(user.id)
         user.profile_photo = "https://avatars.githubusercontent.com/u/17078488?v=4.jpg"
         login_user(user)
 
@@ -90,6 +93,7 @@ def authorize():
     user.profile_photo = user_info['picture']
     login_user(user)
     session['profile_photo'] = user_info['picture']
+    session['user_worlds'] = get_users_worlds(user.id)
     return redirect(url_for('home'))
 
 @app.route('/logout')
@@ -115,30 +119,42 @@ def logout():
 @app.route('/')
 def home():
     if not current_user.is_authenticated:
-        return render_template('main.html', Worlds = [])
-    
-    return render_template('main.html', Worlds = get_users_worlds(current_user.id))
+        return render_template('main.html')
+    return render_template('main.html')
 
 @app.route('/chat')
 @local_login_required
 def chat():
-    print(f"User {current_user.id} accessed the home page.")
+    world = request.args.get('world_id')
+    if not check_world_access(world):
+        return redirect(url_for('home'))
+
+
+    print(f"User {current_user.id} accessed the chat page.")
     print("Entries For ",current_user.id, ": ", get_user_fact_count(current_user.id))
 
     all_proper_nouns = get_all_proper_nouns()
 
-    return render_template('index.html', nouns=all_proper_nouns)
+    return render_template('index.html', nouns=all_proper_nouns, world_id=world)
 
 @app.route('/overview')
 @local_login_required
 def overview():   
+    world = request.args.get('world_id')
+    if not check_world_access(world):
+        return redirect(url_for('home'))
+
     all_proper_nouns = get_all_proper_nouns()
-    return render_template('overview.html', sections=get_overview_data(), nouns=all_proper_nouns)
+    return render_template('overview.html', sections=get_overview_data(), nouns=all_proper_nouns, world_id=world)
 
 @app.route('/userfacts')
 @local_login_required
 def user_facts():
-    return render_template('userfacts.html', categorized_facts=get_facts_by_user(current_user.id), nouns=get_nouns_by_user(current_user.id))
+    world = request.args.get('world_id')
+    if not check_world_access(world):
+        return redirect(url_for('home'))
+    
+    return render_template('userfacts.html', categorized_facts=get_facts_by_user(current_user.id), nouns=get_nouns_by_user(current_user.id), world_id=world)
 
 @socketio.on('connect')
 def on_connect():
@@ -216,6 +232,13 @@ def delete_noun(data):
     if not current_user.is_authenticated:
         return False  # Or handle appropriately
     delete_user_noun(current_user.id,data["id"])
+
+def check_world_access(world_id):
+    worlds = session.get("user_worlds")
+    for world in worlds:
+        if world['world_id'] == world_id:
+            return True
+    return False
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=6969)

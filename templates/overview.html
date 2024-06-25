@@ -52,6 +52,7 @@
                             { word: "{{ noun.word }}", definition: "{{ noun.definition }}" },
                         {% endfor %}
                     ];
+        let world = "{{world_id}}";
     </script>
     <script src="{{ url_for('static', filename='js/overview.js') }}"></script>
 </body>

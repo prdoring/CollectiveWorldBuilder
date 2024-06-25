@@ -31,7 +31,7 @@ document.getElementById('newConversationForm').addEventListener('submit', functi
     e.preventDefault();
     var name = document.getElementById('newConversationName').value.trim();
     if (name) {
-        socket.emit('create_conversation', {name: name});
+        socket.emit('create_conversation', {name: name, world_id:world});
         document.getElementById('newConversationName').value = ''; // Clear input
     }
 });
@@ -79,7 +79,7 @@ socket.on('nouns_list', function(data) {
 
 function joinConversation(conversationId) {
     if (currentConversationId) {
-        socket.emit('leave_conversation', {conversation_id: currentConversationId});
+        socket.emit('leave_conversation', {conversation_id: currentConversationId, world_id:world});
     }
     document.querySelectorAll('.conversations li').forEach(li => {
         li.classList.remove('active');
@@ -89,7 +89,7 @@ function joinConversation(conversationId) {
         selectedConversation.classList.add('active');
     }
     currentConversationId = conversationId;
-    socket.emit('join_conversation', {conversation_id: conversationId});
+    socket.emit('join_conversation', {conversation_id: conversationId, world_id:world});
     document.getElementById('messages').innerHTML = ''; // Clear current messages
     document.getElementById('messageInput').disabled = false;
     document.querySelector('.btn.btn-primary').disabled = false;
@@ -98,7 +98,7 @@ function joinConversation(conversationId) {
 }
 
 function deleteConversation(conversationId) {
-    socket.emit('delete_conversation', {conversation_id: conversationId});
+    socket.emit('delete_conversation', {conversation_id: conversationId, world_id:world});
     currentConversationId = null;
     document.getElementById('messages').innerHTML = ''; // Clear current messages
     document.getElementById('messageInput').disabled = true;
@@ -136,7 +136,7 @@ function sendMessage() {
     document.getElementById('typingIndicator').style.display = 'block';
 
     // Send the message to the server
-    socket.emit('send_message', {message: message, conversation_id: currentConversationId});
+    socket.emit('send_message', {message: message, conversation_id: currentConversationId, world_id:world});
 
     // Clear the message input field
     messageInput.value = '';
@@ -176,7 +176,7 @@ socket.on('broadcast_message', function(data) {
 socket.on('welcome_message', function(data) {
     
     if (currentConversationId==null) {
-        socket.emit('request_nouns',{});
+        socket.emit('request_nouns',{world_id:world});
         displayWelcomeMessage(data.message); // Pass the whole message object
         
     }
@@ -253,5 +253,5 @@ document.addEventListener('DOMContentLoaded', function() {
         conversationsSection.classList.toggle('collapsed');
     });
     displayWelcomeMessage("<h2>Welcome!</h2><br/>To get started make a character and get to talking!  <br/><br/>If you are looking for inspiration wait here and you will be given a list of the top things the interviewer wants to know!<br/>")
-    socket.emit('request_welcome_message',{});
+    socket.emit('request_welcome_message',{world_id:world});
 });

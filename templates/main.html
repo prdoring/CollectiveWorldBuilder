@@ -28,22 +28,21 @@
         </div>
     </nav>
     
-    
     {% if current_user.is_authenticated %}
         <h1>Your Worlds</h1>
     
         <div class="world-tiles">
-            {% for world in Worlds %}
+            {% for world in session['user_worlds'] %}
                 <div class="world-tile">
-                    <a href="{{ url_for('chat') }}" class="tile-link">
+                    <a href="{{ url_for('chat', world_id=world.world_id) }}" class="tile-link">
                         <img src="{{ url_for('static', filename='images/world_icons/' + world.id + '.jpg') }}" alt="{{ world.world_name }}">
                         <div class="world-title">
                             <h2>{{ world.world_name }}</h2> 
                         </div>
                         <div class="world-info">
                             <div class="world-links">
-                                <a href="{{ url_for('overview') }}" target="_blank" class="world-link external-link">World Overview</a>
-                                <a href="{{ url_for('user_facts') }}" target="_blank" class="world-link external-link">Your Contributions</a>
+                                <a href="{{ url_for('overview', world_id=world.world_id) }}" target="_blank" class="world-link external-link">World Overview</a>
+                                <a href="{{ url_for('user_facts', world_id=world.world_id) }}" target="_blank" class="world-link external-link">Your Contributions</a>
                             </div>
                         </div>
                     </a>

@@ -43,8 +43,8 @@
             
             <div class="chatTitle" id="chatTitle"></div>
             <div id="user_info">
-                <a href="/userfacts" target="_blank" class="external-link" id="your-contributions">0 Contributions!</a><br/>
-                <a href="/overview" target="_blank" class="external-link">City Overview</a>
+                <a href="{{ url_for('user_facts', world_id=world_id) }}" target="_blank" class="external-link" id="your-contributions">0 Contributions!</a><br/>
+                <a href="{{ url_for('overview', world_id=world_id) }}" target="_blank" class="external-link">City Overview</a>
             </div>
         </div>
         <ul id="messages"></ul>
@@ -68,6 +68,7 @@
                         { word: "{{ noun.word }}", definition: "{{ noun.definition }}" },
                     {% endfor %}
                 ];
+    let world = "{{world_id}}";
 </script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 
