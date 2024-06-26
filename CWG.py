@@ -10,8 +10,7 @@ from apis.gpt import *
 from util.config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
-from apis.sqldb import (vector_query, get_facts_by_user, get_user_fact_count, check_for_taxonomy_update, 
-                        get_all_proper_nouns, sql_get_or_create_conversation, sql_update_conversation_history, 
+from apis.sqldb import (get_facts_by_user, get_user_fact_count, get_all_proper_nouns, sql_get_or_create_conversation, 
                         get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, delete_user_noun,
                         delete_conversation, get_users_worlds)
 from util.decorators import timing_decorator
@@ -131,9 +130,9 @@ def chat():
 
 
     print(f"User {current_user.id} accessed the chat page.")
-    print("Entries For ",current_user.id, ": ", get_user_fact_count(current_user.id))
+    print("Entries For ",current_user.id, ": ", get_user_fact_count(current_user.id, world))
 
-    all_proper_nouns = get_all_proper_nouns()
+    all_proper_nouns = get_all_proper_nouns(world)
 
     return render_template('index.html', nouns=all_proper_nouns, world_id=world)
 
@@ -144,8 +143,8 @@ def overview():
     if not check_world_access(world):
         return redirect(url_for('home'))
 
-    all_proper_nouns = get_all_proper_nouns()
-    return render_template('overview.html', sections=get_overview_data(), nouns=all_proper_nouns, world_id=world)
+    all_proper_nouns = get_all_proper_nouns(world)
+    return render_template('overview.html', sections=get_overview_data(world), nouns=all_proper_nouns, world_id=world)
 
 @app.route('/userfacts')
 @local_login_required
@@ -154,47 +153,56 @@ def user_facts():
     if not check_world_access(world):
         return redirect(url_for('home'))
     
-    return render_template('userfacts.html', categorized_facts=get_facts_by_user(current_user.id), nouns=get_nouns_by_user(current_user.id), world_id=world)
+    return render_template('userfacts.html', categorized_facts=get_facts_by_user(current_user.id, world), nouns=get_nouns_by_user(current_user.id, world), world_id=world)
 
 @socketio.on('connect')
 def on_connect():
     if not current_user.is_authenticated:
-        return False  # Or handle appropriately
-    on_connect_emitters(current_user.id)
+        return False
+
+@socketio.on('setup')
+def on_setup(data):
+    world_id = data['world_id']
+    if not current_user.is_authenticated or not check_world_access(world_id):
+        return False
+    on_connect_emitters(current_user.id, world_id)
 
 @socketio.on('create_conversation')
 def handle_create_conversation(data):
-    if not current_user.is_authenticated:
-        return False  # Or handle appropriately
+    world_id = data['world_id']
+    if not current_user.is_authenticated or not check_world_access(world_id):
+        return False
     name = data['name']
-    existing_conversations = get_user_conversations(current_user.id)
+    existing_conversations = get_user_conversations(current_user.id, world_id)
     has_convo = any(conversation['chat_name'] == name for conversation in existing_conversations)
     if(not has_convo):
         welcome_message = f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."
-        sql_get_or_create_conversation(name, current_user.id, welcome_message)
+        sql_get_or_create_conversation(name, current_user.id, welcome_message, world=world_id)
         emit_conversation_created(name)
 
 @socketio.on('send_message')
-def handle_send_message(data):
-    if not current_user.is_authenticated:
+def handle_send_message(data): 
+    world_id = data['world_id']
+    if not current_user.is_authenticated or not check_world_access(world_id):
         return False  # Or handle appropriately
     message = {'text': data['message'], 'sender': 'user'}
     conversation_id = data['conversation_id']
-    conversation = sql_get_or_create_conversation(conversation_id, current_user.id)
+    conversation = sql_get_or_create_conversation(conversation_id, current_user.id, world=world_id)
     if conversation:
         conversation = conversation
         emit_broadcast_message(conversation_id, message)
-        res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name)), 'sender': 'system'}
+        res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name), world=world_id), 'sender': 'system'}
         emit_broadcast_message(conversation_id, res)
-        emit_user_fact_count(current_user.id)
+        emit_user_fact_count(current_user.id, world_id)
 
 @socketio.on('join_conversation')
 def handle_join_conversation(data):
-    if not current_user.is_authenticated:
+    world_id = data["world_id"]
+    if not current_user.is_authenticated or not check_world_access(world_id):
         return False  # Or handle appropriately
     conversation_id = data['conversation_id']
     join_room(conversation_id)
-    emit_conversation_history(conversation_id, current_user.id)
+    emit_conversation_history(conversation_id, current_user.id, world_id)
 
 @socketio.on('leave_conversation')
 def handle_leave_conversation(data):
@@ -204,34 +212,43 @@ def handle_leave_conversation(data):
 
 @socketio.on('delete_conversation')
 def handle_delete_conversation(data):
-    if not current_user.is_authenticated:
+    world_id = data["world_id"]
+    if not current_user.is_authenticated or not check_world_access(world_id):
+        print(data["conversation_id"])
+        print(current_user.id)
+        print(world_id)
+        print("NOT AUTHORIZED")
         return False  # Or handle appropriately
     leave_room(data['conversation_id'])
-    delete_conversation
+    delete_conversation(data['conversation_id'],current_user.id, world_id)
 
 @socketio.on('request_welcome_message')
 def request_welcome_message(data):
-    if not current_user.is_authenticated:
+    world_id = data["world_id"]
+    if not current_user.is_authenticated or not check_world_access(world_id):
         return False  # Or handle appropriately
-    emit_welcome_message()
+    emit_welcome_message(world_id)
 
 @socketio.on('request_nouns')
 def request_nouns(data):
-    if not current_user.is_authenticated:
+    world_id = data["world_id"]
+    if not current_user.is_authenticated or not check_world_access(world_id):
         return False  # Or handle appropriately
-    emit_proper_nouns()
+    emit_proper_nouns(world_id)
 
 @socketio.on('delete_fact')
 def delete_fact(data):
-    if not current_user.is_authenticated:
+    world_id = data["world_id"]
+    if not current_user.is_authenticated or not check_world_access(world_id):
         return False  # Or handle appropriately
-    delete_user_fact(current_user.id,data["id"])
+    delete_user_fact(current_user.id, data["id"], world_id)
 
 @socketio.on('delete_noun')
 def delete_noun(data):
-    if not current_user.is_authenticated:
+    world_id = data["world_id"]
+    if not current_user.is_authenticated or not check_world_access(world_id):
         return False  # Or handle appropriately
-    delete_user_noun(current_user.id,data["id"])
+    delete_user_noun(current_user.id,data["id"],world_id)
 
 def check_world_access(world_id):
     worlds = session.get("user_worlds")

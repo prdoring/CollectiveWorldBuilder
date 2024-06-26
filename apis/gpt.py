@@ -41,9 +41,9 @@ def get_gpt3_response(messages_for_gpt):
     )
     return completion.choices[0].message.content
 
-def fetch_context():
-    all_facts = get_all_facts()
-    all_proper_nouns = get_all_proper_nouns()
+def fetch_context(world):
+    all_facts = get_all_facts(world)
+    all_proper_nouns = get_all_proper_nouns(world)
     context = "Known Facts:\n"
     context += "\n".join([f"{fact['category']}: {fact['textv']}" for fact in all_facts])
     context += "\n\nKnown Proper Nouns:\n"
@@ -51,12 +51,12 @@ def fetch_context():
 
     return context
 
-def call_get_fact_response(messages_for_fact, user_id):
+def call_get_fact_response(messages_for_fact, user_id, world):
     """Call get_fact_response in a separate thread."""
     fact_response_json = get_gpt_json_response(messages_for_fact)
-    return process_new_information(fact_response_json, user_id)
+    return process_new_information(fact_response_json, user_id, world)
 
-def process_new_information(fact_response_json, user_id):
+def process_new_information(fact_response_json, user_id, world):
     """Process new information received from the fact response."""
     new_info = fact_response_json.get('new_info', [])
     new_proper_nouns = fact_response_json.get('new_proper_nouns', [])
@@ -65,14 +65,14 @@ def process_new_information(fact_response_json, user_id):
         print("New Proper Nouns:", new_proper_nouns)
         for info in new_info:
             new_added["fact"] = True
-            add_new_fact_to_vector_db(info["fact"], user_id, info["category"])
+            add_new_fact_to_vector_db(info["fact"], user_id, info["category"], world)
             info["user"] = user_id
         for noun in new_proper_nouns:
-            add_new_noun_to_vector_db(noun["word"],noun["definition"], user_id)
+            add_new_noun_to_vector_db(noun["word"],noun["definition"], user_id, world)
             new_added["noun"] = True
         
         print("New Info:", new_info)
-        check_for_taxonomy_update()
+        check_for_taxonomy_update(world)
     return new_added
 
 def get_gpt_json_response(messages_for_fact):
@@ -128,23 +128,23 @@ def prepare_messages_for_welcome_message(context):
     ]
     return messages_for_welcome
 
-def get_welcome_message():
-    context = fetch_context()
+def get_welcome_message(world):
+    context = fetch_context(world)
     messages_for_welcome = prepare_messages_for_welcome_message(context)
     response_text = get_gpt_response(messages_for_welcome)
     return response_text
 
-def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True):
+def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True, world=""):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
-    conversation = sql_get_or_create_conversation(conversation_id, user_id)
-    context = fetch_context()
+    conversation = sql_get_or_create_conversation(conversation_id, user_id, world=world)
+    context = fetch_context(world)
 
     # request relevant history summary
 
     messages_history = conversation['messages']
     last_message = messages_history[-1]['text'] if messages_history else None
 
-    relevant_history = json.dumps(vector_query(message, 25))
+    relevant_history = json.dumps(vector_query(message, 35, world))
     messages_for_gpt = prepare_messages_for_gpt(messages_history, message, relevant_history, initial_system_message)
     messages_for_fact = prepare_messages_for_fact(context, message, last_message, fact_message)
 
@@ -152,7 +152,7 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
 
     # Call get_fact_response on a separate thread unless it is disabled
     if(not disable_canon):
-        fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id,))
+        fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id, world))
         fact_response_thread.start()
-    sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history)
+    sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history, world)
     return response_text

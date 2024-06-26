@@ -65,54 +65,54 @@ def get_embedding(text):
     )
     return response.data[0].embedding
 
-def add_new_fact_to_vector_db(fact, user, category):
+def add_new_fact_to_vector_db(fact, user, category, world):
     vector = get_embedding(fact)
-    add_new_fact_to_db(fact, user, category, vector)
+    add_new_fact_to_db(fact, user, category, vector, world)
 
-def add_new_noun_to_vector_db(word, definition, userid):
+def add_new_noun_to_vector_db(word, definition, userid, world):
     vector = get_embedding(word+": "+definition)
-    add_new_noun_to_db(word, definition, vector, userid)
+    add_new_noun_to_db(word, definition, vector, userid, world)
 
 # Insert data into the table
-def add_new_fact_to_db(text, user, category, embedding):
+def add_new_fact_to_db(text, user, category, embedding, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "INSERT INTO "+vector_table+" (id, textv, vector, userid, category) VALUES (UUID(), %s, JSON_ARRAY_PACK(%s), %s, %s)"
-            cursor.execute(sql, (text, json.dumps(embedding), user, category))
+            sql = "INSERT INTO "+vector_table+" (id, textv, vector, userid, category, world_id) VALUES (UUID(), %s, JSON_ARRAY_PACK(%s), %s, %s, %s)"
+            cursor.execute(sql, (text, json.dumps(embedding), user, category, world))
         connection.commit()
     finally:
         connection.close()
 
 # Insert data into the table
-def add_new_noun_to_db(word, definition, embedding, userid):
+def add_new_noun_to_db(word, definition, embedding, userid, world):
     connection = get_db_connection()
     try:
          with connection.cursor() as cursor:
             # Check if the word already exists in the table
-            sql_check = "SELECT id FROM proper_nouns WHERE word = %s"
-            cursor.execute(sql_check, (word,))
+            sql_check = "SELECT id FROM proper_nouns WHERE word = %s and world_id=%s"
+            cursor.execute(sql_check, (word,world))
             result = cursor.fetchone()
             
             if result:
                 # If the word exists, update the entry
-                sql_update = "UPDATE proper_nouns SET definition = %s, vector = JSON_ARRAY_PACK(%s) WHERE id = %s"
-                cursor.execute(sql_update, (definition, json.dumps(embedding), result['id']))
+                sql_update = "UPDATE proper_nouns SET definition = %s, vector = JSON_ARRAY_PACK(%s) WHERE id = %s and world_id=%s"
+                cursor.execute(sql_update, (definition, json.dumps(embedding), result['id'], world))
             else:
                 # If the word does not exist, insert a new entry
-                sql_insert = "INSERT INTO proper_nouns (id, word, definition, vector, userid) VALUES (UUID(), %s, %s, JSON_ARRAY_PACK(%s), %s)"
-                cursor.execute(sql_insert, (word, definition, json.dumps(embedding),userid))
+                sql_insert = "INSERT INTO proper_nouns (id, word, definition, vector, userid, world_id) VALUES (UUID(), %s, %s, JSON_ARRAY_PACK(%s), %s, %s)"
+                cursor.execute(sql_insert, (word, definition, json.dumps(embedding),userid, world))
             
             connection.commit()
     finally:
         connection.close()
 
-def get_facts_by_user(userid):
+def get_facts_by_user(userid, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT id, textv, category FROM facts_vector WHERE userid = %s ORDER BY category;"
-            cursor.execute(sql, (userid))
+            sql = "SELECT id, textv, category FROM facts_vector WHERE userid = %s and world_id=%s ORDER BY category;"
+            cursor.execute(sql, (userid, world))
             result = cursor.fetchall()
 
             categorized_facts = {}
@@ -125,70 +125,70 @@ def get_facts_by_user(userid):
     finally:
         connection.close() 
 
-def get_nouns_by_user(userid):
+def get_nouns_by_user(userid, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT id, word, definition FROM proper_nouns WHERE userid = %s ORDER BY word ASC;"
-            cursor.execute(sql, (userid))
+            sql = "SELECT id, word, definition FROM proper_nouns WHERE userid = %s and world_id=%s ORDER BY word ASC;"
+            cursor.execute(sql, (userid, world))
             result = cursor.fetchall()
             return result
     finally:
         connection.close() 
 
-def delete_user_fact(userid, factid):
+def delete_user_fact(userid, factid, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "DELETE FROM facts_vector WHERE userid = %s AND id = %s"
-            cursor.execute(sql, (userid,factid,))
+            sql = "DELETE FROM facts_vector WHERE userid = %s AND id = %s and world_id=%s"
+            cursor.execute(sql, (userid,factid,world))
             result = cursor.fetchall()
             connection.commit()
             print(f"deleted fact id: {factid}")
-            check_for_taxonomy_update()
+            check_for_taxonomy_update(world)
     finally:
         connection.close() 
 
-def delete_user_noun(userid, nounId):
+def delete_user_noun(userid, nounId, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "DELETE FROM proper_nouns WHERE userid = %s AND id = %s"
-            cursor.execute(sql, (userid,nounId,))
+            sql = "DELETE FROM proper_nouns WHERE userid = %s AND id = %s and world_id=%s"
+            cursor.execute(sql, (userid,nounId,world))
             result = cursor.fetchall()
             connection.commit()
             print(f"deleted noun id: {nounId}")
     finally:
         connection.close() 
 
-def get_user_fact_count(userid):
+def get_user_fact_count(userid, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT COUNT(*) FROM facts_vector WHERE userid = %s;"
-            cursor.execute(sql, (userid))
+            sql = "SELECT COUNT(*) FROM facts_vector WHERE userid = %s and world_id = %s;"
+            cursor.execute(sql, (userid, world))
             result = cursor.fetchall()
             return result[0]['COUNT(*)']
     finally:
         connection.close() 
 
-def get_category_fact_count(category):
+def get_category_fact_count(category, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT COUNT(*) FROM facts_vector WHERE category = %s;"
-            cursor.execute(sql, (category))
+            sql = "SELECT COUNT(*) FROM facts_vector WHERE category = %s and world_id = %s;"
+            cursor.execute(sql, (category, world))
             result = cursor.fetchall()
             return result[0]['COUNT(*)']
     finally:
         connection.close() 
 
-def get_overview_category_fact_count(category):
+def get_overview_category_fact_count(category, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT FactCount from overview where TopCategory = %s"
-            cursor.execute(sql, (category))
+            sql = "SELECT FactCount from overview where TopCategory = %s and world_id = %s"
+            cursor.execute(sql, (category, world))
             result = cursor.fetchall()
             if(result):
                 return result[0]['FactCount']
@@ -197,18 +197,18 @@ def get_overview_category_fact_count(category):
     finally:
         connection.close() 
 
-def clear_overview_category(category):
+def clear_overview_category(category, world):
     # DELETE FROM overview WHERE TopSectionId = 'specific-top-section-id';
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "DELETE FROM overview WHERE TopCategory = %s"
-            cursor.execute(sql, (category))
+            sql = "DELETE FROM overview WHERE TopCategory = %s and world_id=%s"
+            cursor.execute(sql, (category,world))
         connection.commit()
     finally:
         connection.close()
 
-def insert_overview_entry(title, introduction, main_content, summary, parent_section_id, top_category, fact_count):
+def insert_overview_entry(title, introduction, main_content, summary, parent_section_id, top_category, fact_count, world):
     # DELETE FROM overview WHERE TopSectionId = 'specific-top-section-id';
     new_uuid = str(uuid.uuid4())
     connection = get_db_connection()
@@ -216,11 +216,11 @@ def insert_overview_entry(title, introduction, main_content, summary, parent_sec
         with connection.cursor() as cursor:
             # SQL statement that inserts a new record and returns the new UUID
             sql = """
-            INSERT INTO overview (ID, Title, Introduction, MainContent, Summary, ParentSectionID, TopCategory, FactCount)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            INSERT INTO overview (ID, Title, Introduction, MainContent, Summary, ParentSectionID, TopCategory, FactCount, world_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
             """
             # Execute the SQL statement
-            cursor.execute(sql, (new_uuid, title, introduction, main_content, summary, parent_section_id, top_category, fact_count))
+            cursor.execute(sql, (new_uuid, title, introduction, main_content, summary, parent_section_id, top_category, fact_count, world))
             # Commit changes
             connection.commit()
 
@@ -229,15 +229,15 @@ def insert_overview_entry(title, introduction, main_content, summary, parent_sec
         # Close the connection
         connection.close()
 
-def check_for_taxonomy_update():
+def check_for_taxonomy_update(world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT category, COUNT(*) FROM facts_vector WHERE category IS NOT NULL GROUP BY category;"
-            cursor.execute(sql)
+            sql = "SELECT category, COUNT(*) FROM facts_vector WHERE category IS NOT NULL AND world_id=%s GROUP BY category;"
+            cursor.execute(sql, (world))
             fact_result = cursor.fetchall()
-            sql = "SELECT TopCategory, FactCount FROM overview WHERE ParentSectionID = ''"
-            cursor.execute(sql)
+            sql = "SELECT TopCategory, FactCount FROM overview WHERE ParentSectionID = '' AND world_id=%s;"
+            cursor.execute(sql, (world))
             overview_result = cursor.fetchall()
     finally:
         connection.close()
@@ -261,17 +261,17 @@ def check_for_taxonomy_update():
         delta = abs(count - ov_cat_count)
         if delta > Config.MAX_FACT_DELTA_FOR_OV_UPDATE:
             print(f"{category}: {count} - UPDATING OVERVIEW with {(count-ov_cat_count)} new facts")
-            sc.start_update_overview(category)
+            sc.start_update_overview(category, world)
         else:
             print(f"{category}: FactDB:{count} - Overview:{ov_cat_count} (Delta: {delta})")
     return cat_counts
 
-def get_overview_data():
+def get_overview_data(world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM overview ORDER BY Title ASC"
-            cursor.execute(sql)
+            sql = "SELECT * FROM overview WHERE world_id = %s ORDER BY Title ASC"
+            cursor.execute(sql, (world))
             result = cursor.fetchall()
             return build_overview_tree(result)
     finally:
@@ -329,40 +329,40 @@ def format_tree(tree):
     return formatted_output
 
 
-def get_all_proper_nouns():
+def get_all_proper_nouns(world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT word, definition FROM proper_nouns ORDER BY word"
-            cursor.execute(sql)
+            sql = "SELECT word, definition FROM proper_nouns WHERE world_id=%s ORDER BY word"
+            cursor.execute(sql, (world))
             result = cursor.fetchall()
             return result
     finally:
         connection.close() 
 
-def get_all_facts():
+def get_all_facts(world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT textv, category FROM facts_vector"
-            cursor.execute(sql)
+            sql = "SELECT textv, category FROM facts_vector WHERE world_id=%s"
+            cursor.execute(sql, (world))
             result = cursor.fetchall()
             return result
     finally:
         connection.close() 
 
-def get_user_conversations(user_id):
+def get_user_conversations(user_id, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT chat_name FROM chats WHERE user = %s;"
-            cursor.execute(sql, (user_id))
+            sql = "SELECT chat_name FROM chats WHERE user = %s AND world_id=%s;"
+            cursor.execute(sql, (user_id,world))
             result = cursor.fetchall()
             return result
     finally:
         connection.close()
 
-def sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history):
+def sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history, world):
     new_message = {"sender": "user", "text": message}
     gpt_message = {"sender": "assistant", "text": response_text}
     messages = messages_history + [new_message, gpt_message]
@@ -370,24 +370,24 @@ def sql_update_conversation_history(conversation_id, user_id, message, response_
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "UPDATE chats SET messages = %s WHERE chat_name = %s AND user = %s;"
-            cursor.execute(sql, (json.dumps(messages), conversation_id, user_id))
+            sql = "UPDATE chats SET messages = %s WHERE chat_name = %s AND user = %s AND world_id = %s;"
+            cursor.execute(sql, (json.dumps(messages), conversation_id, user_id, world))
         connection.commit()
     finally:
         connection.close()
 
-def sql_get_or_create_conversation(conversation_id, user, initial_message=""):  
+def sql_get_or_create_conversation(conversation_id, user, initial_message="", world=""):  
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT chat_name, messages FROM chats WHERE chat_name = %s AND user = %s;"
-            cursor.execute(sql,(conversation_id, user))
+            sql = "SELECT chat_name, messages FROM chats WHERE chat_name = %s AND user = %s AND world_id = %s;"
+            cursor.execute(sql,(conversation_id, user, world))
             result = cursor.fetchall()
             if not result:
-                sql = "INSERT INTO chats (chat_id, chat_name, user, messages) VALUES (UUID(), %s, %s, %s)"
+                sql = "INSERT INTO chats (chat_id, chat_name, user, messages, world_id) VALUES (UUID(), %s, %s, %s, %s)"
                 if(initial_message!=""):
                     initial_message = {"sender": "assistant", "text": initial_message}
-                cursor.execute(sql, (conversation_id, user, json.dumps([initial_message])))
+                cursor.execute(sql, (conversation_id, user, json.dumps([initial_message]), world))
                 connection.commit()
                 return {'name': conversation_id, 'messages': []}
             else:
@@ -395,15 +395,14 @@ def sql_get_or_create_conversation(conversation_id, user, initial_message=""):
     finally:
         connection.close()
 
-def delete_conversation(conversation_id, user):  
+def delete_conversation(conversation_id, user, world):  
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "DELETE FROM chats WHERE chat_name = %s AND user = %s"
-            cursor.execute(sql, (conversation_id, user))
-            result = cursor.fetchall()
+            sql = "DELETE FROM chats WHERE chat_name = %s AND user = %s AND world_id = %s"
+            cursor.execute(sql, (conversation_id, user, world))
             connection.commit()
-            print(f"deleted chat: {conversation_id}")
+            print(f"deleted chat: {conversation_id}  {world}")
     finally:
         connection.close() 
 
@@ -434,22 +433,24 @@ def get_users_worlds(user_id):
         connection.close()
 # Query data from the table
 @timing_decorator
-def vector_query(text, limit):
+def vector_query(text, limit, world_id):
     connection = get_db_connection()
     search_vector = json.dumps(get_embedding(text))
     try:
         with connection.cursor() as cursor:
-            sql = "select textv, dot_product(vector, JSON_ARRAY_PACK(%s)) as score from "+vector_table+" order by score desc limit %s;"
-            cursor.execute(sql, (search_vector, limit))
+            sql = """
+            SELECT textv, dot_product(vector, JSON_ARRAY_PACK(%s)) as score
+            FROM {vector_table}
+            WHERE world_id = %s
+            ORDER BY score DESC
+            LIMIT %s;
+            """.format(vector_table=vector_table)
+            cursor.execute(sql, (search_vector, world_id, limit))
             result = cursor.fetchall()
-            print("Context Score Range")
-            print(str(result[0]["score"])+"------>"+str(result[-1]["score"]))
-            '''print("\n\n_________")
-            print(text)
-            print("\n_________\n")
-            for row in result:
-                print(row)
-                print("_________")'''
+            if result:
+                print("Context Score Range")
+                print(str(result[0]["score"])+"------>"+str(result[-1]["score"]))
             return result
     finally:
         connection.close()
+

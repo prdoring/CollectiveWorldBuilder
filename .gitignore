@@ -2,3 +2,4 @@
 __pycache__/
 embedding/
 singlestore_bundle.pem
+db_scripts/

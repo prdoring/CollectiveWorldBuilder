@@ -143,6 +143,7 @@ function sendMessage() {
 }
 
 socket.on('connect', function() {
+    socket.emit('setup', {world_id:world});
     // No need to do anything here for now, the server will automatically send existing conversations
 });
 
