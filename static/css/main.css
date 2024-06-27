@@ -317,10 +317,6 @@ button:hover {
     height: auto;
 }
 
-.world-tile:hover .settings-link {
-    transform: scale(1.1);
-}
-
 .settings-link:hover {
     content: url('/static/images/gear-icon-hover.png');
 }
