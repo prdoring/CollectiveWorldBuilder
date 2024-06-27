@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     width: 80%;
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     background-color: #1f1f1f;
@@ -73,4 +73,30 @@ button[type="submit"] {
 button[type="submit"]:hover {
     background-image: linear-gradient(to right, #004DBF, #007BFF);
     transform: translateY(-2px);
+}
+
+textarea {
+    
+    height:400px;
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: transparent; /* Color of the track */
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the handle */
+    border-radius: 4px; /* Rounded corners */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the handle on hover */
 }
