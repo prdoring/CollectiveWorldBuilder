@@ -1,7 +1,9 @@
-import threading
-from apis.sqldb import clear_overview_category, insert_overview_entry, get_category_fact_count
-from apis.gpt import fetch_context, get_gpt_response, get_gpt_json_response, taxonomy_message_text
 import json
+import threading
+
+from apis.gpt import fetch_context, get_gpt_response, get_gpt_json_response, taxonomy_message_text
+from apis.sqldb import clear_overview_category, insert_overview_entry, get_category_fact_count
+
 
 currently_updating = []
 def call_update_overview(category, world):

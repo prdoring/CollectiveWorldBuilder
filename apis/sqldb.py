@@ -1,13 +1,15 @@
+import json
+import os
+import uuid
+
 import pymysql
 from dotenv import load_dotenv
 from openai import OpenAI
-import json
-import os
+
 from util.decorators import timing_decorator
 import util.summary_creator as sc
-import uuid
-import datetime
 from util.config import Config
+
 
 load_dotenv()
 client = OpenAI()
@@ -362,7 +364,7 @@ def get_user_conversations(user_id, world):
     finally:
         connection.close()
 
-def sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history, world):
+def update_conversation_history(conversation_id, user_id, message, response_text, messages_history, world):
     new_message = {"sender": "user", "text": message}
     gpt_message = {"sender": "assistant", "text": response_text}
     messages = messages_history + [new_message, gpt_message]
@@ -376,7 +378,7 @@ def sql_update_conversation_history(conversation_id, user_id, message, response_
     finally:
         connection.close()
 
-def sql_get_or_create_conversation(conversation_id, user, initial_message="", world=""):  
+def get_or_create_conversation(conversation_id, user, initial_message="", world=""):  
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:

@@ -1,11 +1,17 @@
+import json
+import threading
+
 from dotenv import load_dotenv
 from openai import OpenAI
-import json
-import time
-import threading
+
 from util.summary_creator import *
 from util.decorators import timing_decorator
-from apis.sqldb import add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, get_all_facts, sql_get_or_create_conversation, sql_update_conversation_history, vector_query, check_for_taxonomy_update
+
+from apis.sqldb import (
+    add_new_fact_to_vector_db, add_new_noun_to_vector_db, get_all_proper_nouns, 
+    get_all_facts, get_or_create_conversation, update_conversation_history, 
+    vector_query, check_for_taxonomy_update
+)
 
 load_dotenv()
 client = OpenAI()
@@ -136,7 +142,7 @@ def get_welcome_message(world):
 
 def message_gpt(message, conversation_id, initial_system_message=initial_system_message_text, fact_message=fact_message_text, user_id = "system", disable_canon = True, world=""):
     """Process and respond to a message in a conversation using GPT, including system and fact messages."""
-    conversation = sql_get_or_create_conversation(conversation_id, user_id, world=world)
+    conversation = get_or_create_conversation(conversation_id, user_id, world=world)
     context = fetch_context(world)
 
     # request relevant history summary
@@ -154,5 +160,5 @@ def message_gpt(message, conversation_id, initial_system_message=initial_system_
     if(not disable_canon):
         fact_response_thread = threading.Thread(target=call_get_fact_response, args=(messages_for_fact,user_id, world))
         fact_response_thread.start()
-    sql_update_conversation_history(conversation_id, user_id, message, response_text, messages_history, world)
+    update_conversation_history(conversation_id, user_id, message, response_text, messages_history, world)
     return response_text

@@ -1,21 +1,25 @@
-from flask import Flask, redirect, url_for, session, render_template, request, current_app, flash
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from authlib.integrations.flask_client import OAuth
-from flask_socketio import SocketIO, emit, join_room, leave_room
-from tinydb import Query
-from dotenv import load_dotenv
 import os
-from util.summary_creator import *
-from apis.gpt import *
-from util.config import DevelopmentConfig, ProductionConfig  # Import configuration classes
 from functools import wraps
-from werkzeug.middleware.proxy_fix import ProxyFix
-from apis.sqldb import (get_facts_by_user, get_user_fact_count, get_all_proper_nouns, sql_get_or_create_conversation, 
-                        get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, delete_user_noun,
-                        delete_conversation, get_users_worlds)
-from util.decorators import timing_decorator
-from transport.emitters import *
 import requests
+
+from flask import Flask, redirect, url_for, session, render_template, request, flash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+from flask_socketio import SocketIO, join_room, leave_room
+from werkzeug.middleware.proxy_fix import ProxyFix
+from dotenv import load_dotenv
+
+from authlib.integrations.flask_client import OAuth
+
+from util.summary_creator import *
+from util.config import DevelopmentConfig, ProductionConfig
+from apis.gpt import *
+from apis.sqldb import (
+    get_facts_by_user, get_user_fact_count, get_all_proper_nouns, get_or_create_conversation, 
+    get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, 
+    delete_user_noun, delete_conversation, get_users_worlds
+)
+from transport.emitters import *
+
 
 load_dotenv()
 
@@ -216,7 +220,7 @@ def handle_create_conversation(data):
     has_convo = any(conversation['chat_name'] == name for conversation in existing_conversations)
     if(not has_convo):
         welcome_message = f"Hello {name}! Please introduce yourself, let me know who you are, what you do, etc., or just say hello! Remember, anything you come up with in this conversation will become canon (unless it conflicts with information I already have). If you don't want to say something wrong, you can always ask me what I know about a specific thing before responding to my question."
-        sql_get_or_create_conversation(name, current_user.id, welcome_message, world=world_id)
+        get_or_create_conversation(name, current_user.id, welcome_message, world=world_id)
         emit_conversation_created(name)
 
 @socketio.on('send_message')
@@ -226,7 +230,7 @@ def handle_send_message(data):
         return False  # Or handle appropriately
     message = {'text': data['message'], 'sender': 'user'}
     conversation_id = data['conversation_id']
-    conversation = sql_get_or_create_conversation(conversation_id, current_user.id, world=world_id)
+    conversation = get_or_create_conversation(conversation_id, current_user.id, world=world_id)
     if conversation:
         conversation = conversation
         emit_broadcast_message(conversation_id, message)
