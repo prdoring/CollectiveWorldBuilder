@@ -46,7 +46,7 @@
                             </div>
                         </div>
                     </a>
-                    {% if current_user.id == "mockuser@example.com" or current_user.id =="prdoring@gmail.com"%}
+                    {% if world.access == "admin"%}
                     <a href="{{ url_for('world_settings', world_id=world.world_id) }}" class="settings-link">
                         <img src="{{ url_for('static', filename='images/gear-icon.png') }}" alt="Settings" class="settings-icon">
                     </a>

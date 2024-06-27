@@ -414,10 +414,10 @@ def get_users_worlds(user_id):
             sql = "SELECT * FROM users_worlds WHERE user_id = %s;"
             cursor.execute(sql, (user_id,))
             user_worlds = cursor.fetchall()
-            
+            world_ids=[]
             # Extracting world_ids
             world_ids = [uw['world_id'] for uw in user_worlds]
-            
+            world_access = {uw['world_id']:uw['access'] for uw in user_worlds}
             # If there are no world_ids, return an empty list
             if not world_ids:
                 return []
@@ -427,7 +427,8 @@ def get_users_worlds(user_id):
             sql = f"SELECT * FROM worlds WHERE id IN ({format_strings});"
             cursor.execute(sql, world_ids)
             worlds = cursor.fetchall()
-            
+            for world in worlds:
+                world['access'] = world_access[world['id']]
             return worlds
     finally:
         connection.close()
