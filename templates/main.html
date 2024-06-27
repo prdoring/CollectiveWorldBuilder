@@ -35,7 +35,8 @@
             {% for world in session['user_worlds'] %}
                 <div class="world-tile">
                     <a href="{{ url_for('chat', world_id=world.world_id) }}" target="_blank" class="tile-link">
-                        <img src="{{ url_for('static', filename='images/world_icons/' + world.id + '.jpg') }}" alt="{{ world.world_name }}">
+                        <img src="{{ url_for('static', filename='images/world_icons/' + world.id + '.jpg') }}" alt="{{ world.world_name }}"
+                        onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/world_icons/default.jpg') }}';">
                         <div class="world-title">
                             <h2>{{ world.world_name }}</h2> 
                             <h5>
