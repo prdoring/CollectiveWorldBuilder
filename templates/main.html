@@ -34,10 +34,18 @@
         <div class="world-tiles">
             {% for world in session['user_worlds'] %}
                 <div class="world-tile">
-                    <a href="{{ url_for('chat', world_id=world.world_id) }}" class="tile-link">
+                    <a href="{{ url_for('chat', world_id=world.world_id) }}" target="_blank" class="tile-link">
                         <img src="{{ url_for('static', filename='images/world_icons/' + world.id + '.jpg') }}" alt="{{ world.world_name }}">
                         <div class="world-title">
                             <h2>{{ world.world_name }}</h2> 
+                            <h5>
+                                <img src="{{ url_for('static', filename='images/' + world.type + '-icon.png') }}" alt="{{ world.type }}">
+                                {% if world.access == "admin"%}
+                                    <a href="{{ url_for('world_settings', world_id=world.world_id) }}" class="settings-link">
+                                        <img class="settings-gear" src="{{ url_for('static', filename='images/gear-icon.png') }}" alt="Settings" class="settings-icon">
+                                    </a>
+                                {% endif %}
+                            </h5> 
                         </div>
                         <div class="world-info">
                             <div class="world-links">
@@ -46,11 +54,6 @@
                             </div>
                         </div>
                     </a>
-                    {% if world.access == "admin"%}
-                    <a href="{{ url_for('world_settings', world_id=world.world_id) }}" class="settings-link">
-                        <img src="{{ url_for('static', filename='images/gear-icon.png') }}" alt="Settings" class="settings-icon">
-                    </a>
-                    {% endif %}
                 </div>
             {% endfor %}
  

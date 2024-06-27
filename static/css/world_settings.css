@@ -40,6 +40,14 @@
     outline: none;
 }
 
+.form-group input[type="text"]:disabled,
+.form-group textarea:disabled {
+    background-color: #444;
+    border-color: #666;
+    color: #888;
+    cursor: not-allowed;
+}
+
 .radio-group {
     display: flex;
     gap: 10px;
@@ -52,6 +60,11 @@
 
 .radio-group input[type="radio"] {
     margin-right: 5px;
+}
+
+.radio-group input[type="radio"]:disabled + label {
+    color: #888;
+    cursor: not-allowed;
 }
 
 button[type="submit"] {
@@ -75,9 +88,14 @@ button[type="submit"]:hover {
     transform: translateY(-2px);
 }
 
+button[type="submit"]:disabled {
+    background-image: linear-gradient(to right, #444, #666);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 textarea {
-    
-    height:400px;
+    height: 400px;
 }
 
 /* Custom scrollbar styles */

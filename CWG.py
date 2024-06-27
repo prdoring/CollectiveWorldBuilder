@@ -16,7 +16,7 @@ from apis.gpt import *
 from apis.sqldb import (
     get_facts_by_user, get_user_fact_count, get_all_proper_nouns, get_or_create_conversation, 
     get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, 
-    delete_user_noun, delete_conversation, get_users_worlds
+    delete_user_noun, delete_conversation, get_users_worlds, update_world
 )
 from transport.emitters import *
 
@@ -58,6 +58,9 @@ def load_user(user_id):
     if not session.get('user_worlds'):
         session['user_worlds'] = get_users_worlds(user.id)
     return user
+
+def refresh_session_info():
+    session['user_worlds'] = get_users_worlds(current_user.id)
 
 def local_login_required(f):
     @wraps(f)
@@ -123,6 +126,7 @@ def logout():
 def home():
     if not current_user.is_authenticated:
         return render_template('main.html')
+    refresh_session_info()
     return render_template('main.html')
 
 @app.route('/chat')
@@ -183,9 +187,8 @@ def save_world_settings():
         world_name = request.form['world_name']
         world_type = request.form['world_type']
         overview = request.form['overview']
-        print(world_name)
-        print(world_type)
-        print(overview)
+        update_world(world_name, world_type, overview, world_id)
+        refresh_session_info()
         # Assuming update_world_settings function takes these parameters and updates the database
         success = True# update_world_settings(world_name=world_name, world_type=world_type, overview=overview)
         
@@ -194,7 +197,7 @@ def save_world_settings():
         else:
             flash('An error occurred while updating world settings.', 'error')
         
-        return redirect(url_for('home'))
+        return redirect(url_for('world_settings', world_id=world_id))
 
 
 

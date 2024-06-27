@@ -426,7 +426,7 @@ def get_users_worlds(user_id):
 
             # Second query to get worlds
             format_strings = ','.join(['%s'] * len(world_ids))
-            sql = f"SELECT * FROM worlds WHERE id IN ({format_strings});"
+            sql = f"SELECT * FROM worlds WHERE id IN ({format_strings}) ORDER BY world_name ASC;"
             cursor.execute(sql, world_ids)
             worlds = cursor.fetchall()
             for world in worlds:
@@ -434,6 +434,17 @@ def get_users_worlds(user_id):
             return worlds
     finally:
         connection.close()
+
+def update_world(name, type, overview, world):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE worlds SET world_name = %s, type = %s, overview=%s WHERE world_id = %s;"
+            cursor.execute(sql, (name,type,overview,world))
+        connection.commit()
+    finally:
+        connection.close()
+
 # Query data from the table
 @timing_decorator
 def vector_query(text, limit, world_id):
