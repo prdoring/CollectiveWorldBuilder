@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.webp') }}">
+    <title>World Settings</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/world_settings.css') }}">
+</head>
+<body>
+<main>
+    <nav>
+        <div class="nav-left">
+            <a href="{{ url_for('home') }}">Home</a>
+        </div>
+        <div class="nav-right">
+            {% if current_user.is_authenticated %}
+                <div class="user-menu">
+                    <img src="{{ current_user.profile_photo }}" alt="Profile Photo" class="profile-photo">
+                    <div class="dropdown">
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('google_login') }}">Sign In</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    {% if current_user.is_authenticated %}
+        <h1>World Settings</h1>
+    
+        <form action="{{ url_for('save_world_settings') }}" method="POST" class="world-settings-form">
+            <div class="form-group">
+                <label for="world_name">City Name</label>
+                <input type="text" id="world_name" name="world_name" value="{{ World.world_name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="world_type">Type</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="world_type" value="world" {% if World.type == 'world' %}checked{% endif %}>
+                        World
+                    </label>
+                    <label>
+                        <input type="radio" name="world_type" value="city" {% if World.type == 'city' %}checked{% endif %}>
+                        City
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="overview">Overview</label>
+                <textarea id="overview" name="overview" rows="5" required>{{ World.overview }}</textarea>
+            </div>
+            <button type="submit">Save</button>
+        </form>
+    {% else %}
+        <h1>Please sign in to access world settings...</h1>
+    {% endif %}
+</main>
+</body>
+</html>

@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, session, render_template, request, current_app
+from flask import Flask, redirect, url_for, session, render_template, request, current_app, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from authlib.integrations.flask_client import OAuth
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -154,6 +154,41 @@ def user_facts():
         return redirect(url_for('home'))
     
     return render_template('userfacts.html', categorized_facts=get_facts_by_user(current_user.id, world), nouns=get_nouns_by_user(current_user.id, world), world_id=world)
+
+@app.route('/world_settings')
+@local_login_required
+def world_settings():
+    world_id = request.args.get('world_id')
+    if not check_world_access(world_id):
+        return redirect(url_for('home'))
+    worlds = session.get("user_worlds")
+    selected_world = []
+    for world in worlds:
+        if world['world_id'] == world_id:
+            selected_world = world
+    
+    return render_template('world_settings.html', World=selected_world)
+
+@app.route('/save_world_settings', methods=['POST'])
+def save_world_settings():
+    if request.method == 'POST':
+        world_name = request.form['world_name']
+        world_type = request.form['world_type']
+        overview = request.form['overview']
+        print(world_name)
+        print(world_type)
+        print(overview)
+        # Assuming update_world_settings function takes these parameters and updates the database
+        success = True# update_world_settings(world_name=world_name, world_type=world_type, overview=overview)
+        
+        if success:
+            flash('World settings updated successfully!', 'success')
+        else:
+            flash('An error occurred while updating world settings.', 'error')
+        
+        return redirect(url_for('home'))
+
+
 
 @socketio.on('connect')
 def on_connect():

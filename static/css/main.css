@@ -276,3 +276,25 @@ button:hover {
     margin-top:-110px;
     z-index: 0;
 }
+
+.settings-link {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 15px;
+    height: 15px;
+    transition: transform 0.3s ease;
+}
+
+.settings-icon {
+    width: 100%;
+    height: auto;
+}
+
+.world-tile:hover .settings-link {
+    transform: scale(1.1);
+}
+
+.settings-link:hover {
+    background-color: rgba(238, 255, 0, 0.662);
+}

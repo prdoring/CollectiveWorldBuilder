@@ -46,8 +46,14 @@
                             </div>
                         </div>
                     </a>
+                    {% if current_user.id == "mockuser@example.com" or current_user.id =="prdoring@gmail.com"%}
+                    <a href="{{ url_for('world_settings', world_id=world.world_id) }}" class="settings-link">
+                        <img src="{{ url_for('static', filename='images/gear-icon.png') }}" alt="Settings" class="settings-icon">
+                    </a>
+                    {% endif %}
                 </div>
             {% endfor %}
+ 
     {% else %}
          <h1>Please sign in to access your worlds...</h1>
     {% endif %}
