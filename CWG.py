@@ -159,7 +159,7 @@ def user_facts():
 @local_login_required
 def world_settings():
     world_id = request.args.get('world_id')
-    if not check_world_access(world_id):
+    if not check_world_admin_access(world_id):
         return redirect(url_for('home'))
     worlds = session.get("user_worlds")
     selected_world = []
@@ -167,10 +167,14 @@ def world_settings():
         if world['world_id'] == world_id:
             selected_world = world
     
-    return render_template('world_settings.html', World=selected_world)
+    return render_template('world_settings.html', World=selected_world, world_id=world_id)
 
 @app.route('/save_world_settings', methods=['POST'])
 def save_world_settings():
+    world_id = request.form['world_id']
+    if not check_world_admin_access(world_id):
+        return redirect(url_for('home'))
+    
     if request.method == 'POST':
         world_name = request.form['world_name']
         world_type = request.form['world_type']
@@ -289,6 +293,13 @@ def check_world_access(world_id):
     worlds = session.get("user_worlds")
     for world in worlds:
         if world['world_id'] == world_id:
+            return True
+    return False
+
+def check_world_admin_access(world_id):
+    worlds = session.get("user_worlds")
+    for world in worlds:
+        if world['world_id'] == world_id and world['access'] == 'admin':
             return True
     return False
 
