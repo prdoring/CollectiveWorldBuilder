@@ -64,10 +64,12 @@
         </div>
         <!-- Add more content here -->
     </main>
-    <footer>
-        <a href="https://github.com/prdoring/CollectiveWorldBuilder" target="_blank">
-            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" style="width: 24px; height: 24px;">
-        </a>
-    </footer>
+    {% if current_user.is_authenticated %}
+        <footer>
+            <a href="https://github.com/prdoring/CollectiveWorldBuilder" target="_blank">
+                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" style="width: 24px; height: 24px;">
+            </a>
+        </footer>
+    {% endif %}
 </body>
 </html>
