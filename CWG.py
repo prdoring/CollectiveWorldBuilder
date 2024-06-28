@@ -16,7 +16,8 @@ from apis.gpt import *
 from apis.sqldb import (
     get_facts_by_user, get_user_fact_count, get_all_proper_nouns, get_or_create_conversation, 
     get_user_conversations, get_overview_data, delete_user_fact, get_nouns_by_user, 
-    delete_user_noun, delete_conversation, get_users_worlds, update_world
+    delete_user_noun, delete_conversation, get_users_worlds, update_world, get_worlds_users,
+    add_user, update_user
 )
 from transport.emitters import *
 
@@ -175,7 +176,7 @@ def world_settings():
         if world['world_id'] == world_id:
             selected_world = world
     
-    return render_template('world_settings.html', World=selected_world, world_id=world_id)
+    return render_template('world_settings.html', World=selected_world, world_id=world_id, users=get_worlds_users(world_id))
 
 @app.route('/save_world_settings', methods=['POST'])
 def save_world_settings():
@@ -184,10 +185,22 @@ def save_world_settings():
         return redirect(url_for('home'))
     
     if request.method == 'POST':
+        existing_users = request.form.getlist('existing_user_id[]')
+        new_users_input = request.form.getlist('new_user_email[]')
+        new_users_admin = request.form.getlist('new_user_admin[]')
+
+        for existing_user in existing_users:
+            update_user(existing_user, request.form.get('admin_rights_'+existing_user),world_id)
+       
+        for i, email in enumerate(new_users_input):
+            if email.strip():  # Check if email is not empty
+                add_user(email,request.form.get('new_user_admin['+str(i)+']'),world_id)
+
         world_name = request.form['world_name']
         world_type = request.form['world_type']
         overview = request.form['overview']
         update_world(world_name, world_type, overview, world_id)
+        
         refresh_session_info()
         # Assuming update_world_settings function takes these parameters and updates the database
         success = True# update_world_settings(world_name=world_name, world_type=world_type, overview=overview)

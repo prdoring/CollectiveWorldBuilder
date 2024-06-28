@@ -18,6 +18,52 @@
             }, 50); // Adjust the delay as needed
             return true;
         }
+        var addcount = 1;
+        function addNewUserField() {
+            const userEntryTemplate = `
+                <hr/>
+                <div class="user-entry">
+                    <input type="text" name="new_user_email[]" placeholder="Add new user email" oninput="appendGmailSuffix(this)">
+                    <div class="radio-group">
+                            <label>
+                                <input type="radio" name="new_user_admin[`+addcount+`]" value="user" checked>
+                                User
+                            </label>
+                            <label>
+                                <input type="radio" name="new_user_admin[`+addcount+`]" value="admin">
+                                Admin
+                            </label>
+                        </div>
+                </div>`;
+            const userEntryContainer = document.querySelector('.user-list');
+            userEntryContainer.insertAdjacentHTML('beforeend', userEntryTemplate);
+            addcount++;
+        }
+
+        function appendGmailSuffix(input) {
+            const domain = "@gmail.com";
+            if (!input.value.endsWith(domain)) {
+                const pos = input.selectionStart;
+                const baseValue = input.value.replace(domain, '');
+                input.value = baseValue + domain;
+                input.setSelectionRange(pos, pos); // Set cursor position
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const userEntryContainer = document.querySelector('.user-list');
+            userEntryContainer.addEventListener('input', function (event) {
+                if (event.target.name === 'new_user_email[]') {
+                    appendGmailSuffix(event.target);
+                    const newUserFields = document.querySelectorAll('input[name="new_user_email[]"]');
+                    const lastField = newUserFields[newUserFields.length - 1];
+                    if (lastField.value.trim() !== '' && !lastField.hasAttribute('data-initialized')) {
+                        lastField.setAttribute('data-initialized', 'true');
+                        addNewUserField();
+                    }
+                }
+            });
+        });
     </script>
 </head>
 <body>
@@ -42,7 +88,6 @@
     
     {% if current_user.is_authenticated %}
         <h1>World Settings</h1>
-    
         <form action="{{ url_for('save_world_settings') }}" method="POST" class="world-settings-form" onsubmit="return disableInputs(this)">
             <input type="hidden" name="world_id" value="{{ world_id }}">
             <div class="form-group">
@@ -65,6 +110,45 @@
             <div class="form-group">
                 <label for="overview">Overview</label>
                 <textarea id="overview" name="overview" rows="5" required>{{ World.overview }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Users</label>
+                <hr/>
+                <div class="user-list">
+                    {% for user in users %}
+                        <div class="user-entry">
+                            <input type="hidden" name="existing_user_id[]" value="{{ user.user_id }}">
+                            {{ user.user_id }}
+                            {% if user.user_id ==current_user.id %}
+                                <input type="hidden" name="admin_rights_{{ user.user_id }}" value="{{ user.access }}">
+                            {%endif%}
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="admin_rights_{{ user.user_id }}" value="user" {% if user.access != 'admin' %}checked{% endif %} {% if user.user_id ==current_user.id %}disabled{% endif %}>
+                                    User
+                                </label>
+                                <label>
+                                    <input type="radio" name="admin_rights_{{ user.user_id }}" value="admin" {% if user.access == 'admin' %}checked{% endif %} {% if user.user_id ==current_user.id %}disabled{% endif %}>
+                                    Admin
+                                </label>
+                            </div>
+                        </div>
+                        <hr/>
+                    {% endfor %}
+                    <div class="user-entry">
+                        <input type="text" name="new_user_email[]" placeholder="Add new user email" oninput="appendGmailSuffix(this)">
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="new_user_admin[0]" value="user" checked>
+                                User
+                            </label>
+                            <label>
+                                <input type="radio" name="new_user_admin[0]" value="admin">
+                                Admin
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
             <button type="submit">Save</button>
         </form>

@@ -435,6 +435,65 @@ def get_users_worlds(user_id):
     finally:
         connection.close()
 
+def get_worlds_users(world_id):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            # First query to get user worlds
+            sql = "SELECT * FROM worlds WHERE world_id = %s;"
+            cursor.execute(sql, (world_id,))
+            result = cursor.fetchall()
+            if result:
+                world_uuid = result[0]['id']
+                sql = "SELECT * FROM users_worlds WHERE world_id = %s;"
+                cursor.execute(sql, (world_uuid))
+                worlds_users = cursor.fetchall()
+                return worlds_users
+            else:
+                return []
+    finally:
+        connection.close()
+
+def add_user(user_id, access, world_id):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM worlds WHERE world_id = %s;"
+            cursor.execute(sql, (world_id,))
+            result = cursor.fetchall()
+            if result:
+                world_uuid = result[0]['id']
+                sql = "SELECT user_id FROM users_worlds WHERE user_id = %s AND world_id = %s;"
+                cursor.execute(sql,(user_id, world_uuid))
+                result = cursor.fetchall()
+                if not result:
+                    '''INSERT INTO `users_worlds` (`id`, `user_id`, `world_id`, `access`)
+                    VALUES (UUID(), 'pucyen@gmail.com', '5d12a4b9-7cab-4a62-b33f-577f35bd2c3e', 'admin');
+                    '''
+
+                    sql = """INSERT INTO `users_worlds` (`id`, `user_id`, `world_id`, `access`)
+                            VALUES (UUID(), %s, %s, %s);"""
+                
+                    cursor.execute(sql, (user_id, world_uuid, access))
+                    connection.commit()
+    finally:
+        connection.close()
+
+def update_user(user_id, access, world_id):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM worlds WHERE world_id = %s;"
+            cursor.execute(sql, (world_id,))
+            result = cursor.fetchall()
+            if result:
+                world_uuid = result[0]['id']
+                sql = "UPDATE users_worlds SET access = %s WHERE world_id = %s AND user_id=%s"
+                cursor.execute(sql, (access, world_uuid, user_id))
+            connection.commit()
+    finally:
+        connection.close()
+
 def update_world(name, type, overview, world):
     connection = get_db_connection()
     try:
