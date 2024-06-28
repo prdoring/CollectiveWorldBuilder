@@ -99,6 +99,20 @@ nav {
     padding-bottom:5px;
 }
 
+.signin-photo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+    padding-top:5px;
+    padding-bottom:5px;
+}
+
+.signin-photo:hover {
+    content: url('/static/images/signin_hover.png');
+}
+
 main {
     display: flex;
     flex-direction: column;

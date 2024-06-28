@@ -23,7 +23,11 @@
                     </div>
                 </div>
             {% else %}
-                <a href="{{ url_for('google_login') }}">Sign In</a>
+                <a href="{{ url_for('google_login') }}">
+                    <div class="user-menu">
+                        <img src="{{ url_for('static', filename='images/signin.png') }}" alt="sign_in" class="signin-photo">
+                    </div>
+                </a>
             {% endif %}
         </div>
     </nav>
