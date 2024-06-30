@@ -22,7 +22,7 @@ As a DM, I needed a new world for our D&D campaign and wanted it to be a collabo
 - **Dynamic Wiki**: The system updates a wiki and its associated taxonomy in real-time, providing a centralized overview of the world's information.
 - **Consistency Checks**: The AI enhances its interviewing capabilities by challenging inconsistencies and asking questions grounded in the developing lore.
 
-![Icon](static/images/favicon.webp)
+<img src="static/images/favicon.webp" alt="Icon" width="200"/>
 
 ## How It Works
 
