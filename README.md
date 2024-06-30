@@ -9,10 +9,6 @@ Welcome to the Collaborative D&D Worldbuilding Tool! This project aims to assist
 - [Introduction](#introduction)
 - [Features](#features)
 - [How It Works](#how-it-works)
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Introduction
 
