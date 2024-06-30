@@ -1,8 +1,8 @@
-# Collaborative D&D Worldbuilding Tool
+# Collaborative Worldbuilding Tool
 
 ![Banner](static/images/banner.png)
 
-Welcome to the Collaborative D&D Worldbuilding Tool! This project aims to assist Dungeon Masters (DMs) and their players in collaboratively creating and documenting a unique Dungeons & Dragons (D&D) world. By leveraging AI, this tool helps users generate original content while managing the tedious aspects of documentation and organization.
+Welcome to the Collaborative D&D Worldbuilding Tool! This project aims to assist Dungeon Masters (DMs) writers, or any form of worldbuilders in collaboratively creating and documenting a unique fantasy world. By leveraging AI, this tool helps users generate original content while managing the tedious aspects of documentation and organization.
 
 ## Table of Contents
 
