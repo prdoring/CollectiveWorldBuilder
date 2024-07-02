@@ -131,6 +131,10 @@
                                     <input type="radio" name="admin_rights_{{ user.user_id }}" value="admin" {% if user.access == 'admin' %}checked{% endif %} {% if user.user_id ==current_user.id %}disabled{% endif %}>
                                     Admin
                                 </label>
+                                <label>
+                                    <input type="radio" name="admin_rights_{{ user.user_id }}" value="read" {% if user.access == 'read' %}checked{% endif %} {% if user.user_id ==current_user.id %}disabled{% endif %}>
+                                    Read-Only
+                                </label>
                             </div>
                         </div>
                         <hr/>
@@ -145,6 +149,10 @@
                             <label>
                                 <input type="radio" name="new_user_admin[0]" value="admin">
                                 Admin
+                            </label>
+                            <label>
+                                <input type="radio" name="new_user_admin[0]" value="read">
+                                Read-Only
                             </label>
                         </div>
                     </div>
