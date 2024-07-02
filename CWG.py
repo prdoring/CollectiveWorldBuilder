@@ -134,7 +134,7 @@ def home():
 @local_login_required
 def chat():
     world = request.args.get('world_id')
-    if not check_world_access(world):
+    if not check_world_user_access(world):
         return redirect(url_for('home'))
 
 
@@ -149,7 +149,7 @@ def chat():
 @local_login_required
 def overview():   
     world = request.args.get('world_id')
-    if not check_world_access(world):
+    if not check_world_read_access(world):
         return redirect(url_for('home'))
 
     all_proper_nouns = get_all_proper_nouns(world)
@@ -159,7 +159,7 @@ def overview():
 @local_login_required
 def user_facts():
     world = request.args.get('world_id')
-    if not check_world_access(world):
+    if not check_world_user_access(world):
         return redirect(url_for('home'))
     
     return render_template('userfacts.html', categorized_facts=get_facts_by_user(current_user.id, world), nouns=get_nouns_by_user(current_user.id, world), world_id=world)
@@ -222,14 +222,14 @@ def on_connect():
 @socketio.on('setup')
 def on_setup(data):
     world_id = data['world_id']
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False
     on_connect_emitters(current_user.id, world_id)
 
 @socketio.on('create_conversation')
 def handle_create_conversation(data):
     world_id = data['world_id']
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False
     name = data['name']
     existing_conversations = get_user_conversations(current_user.id, world_id)
@@ -242,7 +242,7 @@ def handle_create_conversation(data):
 @socketio.on('send_message')
 def handle_send_message(data): 
     world_id = data['world_id']
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
     message = {'text': data['message'], 'sender': 'user'}
     conversation_id = data['conversation_id']
@@ -257,7 +257,7 @@ def handle_send_message(data):
 @socketio.on('join_conversation')
 def handle_join_conversation(data):
     world_id = data["world_id"]
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
     conversation_id = data['conversation_id']
     join_room(conversation_id)
@@ -272,7 +272,7 @@ def handle_leave_conversation(data):
 @socketio.on('delete_conversation')
 def handle_delete_conversation(data):
     world_id = data["world_id"]
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         print(data["conversation_id"])
         print(current_user.id)
         print(world_id)
@@ -284,35 +284,42 @@ def handle_delete_conversation(data):
 @socketio.on('request_welcome_message')
 def request_welcome_message(data):
     world_id = data["world_id"]
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
     emit_welcome_message(world_id)
 
 @socketio.on('request_nouns')
 def request_nouns(data):
     world_id = data["world_id"]
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
     emit_proper_nouns(world_id)
 
 @socketio.on('delete_fact')
 def delete_fact(data):
     world_id = data["world_id"]
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
     delete_user_fact(current_user.id, data["id"], world_id)
 
 @socketio.on('delete_noun')
 def delete_noun(data):
     world_id = data["world_id"]
-    if not current_user.is_authenticated or not check_world_access(world_id):
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
     delete_user_noun(current_user.id,data["id"],world_id)
 
-def check_world_access(world_id):
+def check_world_read_access(world_id):
     worlds = session.get("user_worlds")
     for world in worlds:
-        if world['world_id'] == world_id:
+        if world['world_id'] == world_id and (world['access'] == 'admin' or world['access'] == 'user' or world['access'] == 'read'):
+            return True
+    return False
+
+def check_world_user_access(world_id):
+    worlds = session.get("user_worlds")
+    for world in worlds:
+        if world['world_id'] == world_id and (world['access'] == 'admin' or world['access'] == 'user'):
             return True
     return False
 

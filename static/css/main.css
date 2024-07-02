@@ -216,9 +216,22 @@ main {
     padding: 10px;
     text-align: center;
     font-weight: bold;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    text-align: center;
 }
 
-.world-links {
+.world-read-only {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    
+    font-size: x-large;
+    background-color: #7e00bf9e;
     bottom: 0;
     left: 0;
     right: 0;

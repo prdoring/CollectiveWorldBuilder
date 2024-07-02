@@ -38,7 +38,12 @@
         <div class="world-tiles">
             {% for world in session['user_worlds'] %}
                 <div class="world-tile">
-                    <a href="{{ url_for('chat', world_id=world.world_id) }}" target="_blank" class="tile-link">
+                    {% if world.access == "read" %}
+                        <a href="{{ url_for('overview', world_id=world.world_id) }}" target="_blank" class="tile-link">
+                    {% else %}
+                        <a href="{{ url_for('chat', world_id=world.world_id) }}" target="_blank" class="tile-link">
+                    {% endif %}
+
                         <img src="{{ url_for('static', filename='images/world_icons/' + world.id + '.jpg') }}" alt="{{ world.world_name }}"
                         onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/world_icons/default.jpg') }}';">
                         <div class="world-title">
@@ -52,12 +57,21 @@
                                 {% endif %}
                             </h5> 
                         </div>
-                        <div class="world-info">
-                            <div class="world-links">
-                                <a href="{{ url_for('overview', world_id=world.world_id) }}" target="_blank" class="world-link external-link">World Overview</a>
-                                <a href="{{ url_for('user_facts', world_id=world.world_id) }}" target="_blank" class="world-link external-link">Your Contributions</a>
+                        {% if world.access == "read" %}
+                            <div class="world-info">
+                                <div class="world-read-only">
+                                    READ ONLY
+                                </div>
                             </div>
-                        </div>
+                            
+                        {% else %}
+                            <div class="world-info">
+                                <div class="world-links">
+                                    <a href="{{ url_for('overview', world_id=world.world_id) }}" target="_blank" class="world-link external-link">World Overview</a>
+                                    <a href="{{ url_for('user_facts', world_id=world.world_id) }}" target="_blank" class="world-link external-link">Your Contributions</a>
+                                </div>
+                            </div>
+                        {% endif %}
                     </a>
                 </div>
             {% endfor %}
