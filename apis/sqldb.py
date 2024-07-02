@@ -357,7 +357,7 @@ def get_user_conversations(user_id, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT chat_name FROM chats WHERE user = %s AND world_id=%s;"
+            sql = "SELECT chat_name FROM chats WHERE user = %s AND world_id=%s ORDER BY created_at"
             cursor.execute(sql, (user_id,world))
             result = cursor.fetchall()
             return result

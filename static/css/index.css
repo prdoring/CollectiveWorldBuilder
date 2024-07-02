@@ -256,6 +256,14 @@ body {
     width: 49%;
 }
 
+.chatTitle h5 {
+    display:inline;
+    background: linear-gradient(45deg, #05a6f145, #0400ff69);
+    padding: 4px;
+    margin: 0px;
+    border-radius: 5px;
+}
+
 .tooltip {
     position: relative;
     display: inline-block;
@@ -453,3 +461,5 @@ button.confirm-button:hover {
     background-repeat:no-repeat;
     border-bottom: 1px solid #ccc;
 }
+
+

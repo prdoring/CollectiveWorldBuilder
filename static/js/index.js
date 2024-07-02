@@ -93,7 +93,11 @@ function joinConversation(conversationId) {
     document.getElementById('messages').innerHTML = ''; // Clear current messages
     document.getElementById('messageInput').disabled = false;
     document.querySelector('.btn.btn-primary').disabled = false;
-    document.getElementById('chatTitle').innerHTML = conversationId + getDeleteButtonHtml()
+    if(conversationId == "DATABASE") {
+        document.getElementById('chatTitle').innerHTML = "<h5>DOES NOT CREATE LORE</h5>"
+    } else {
+        document.getElementById('chatTitle').innerHTML = "<h5>"+conversationId+"</h5>" + getDeleteButtonHtml()
+    }
     document.querySelector('.conversations').classList.toggle('collapsed');
 }
 
@@ -152,7 +156,12 @@ socket.on('existing_conversations', function(conversations) {
     conversationList.innerHTML = ''; // Clear the list before adding
     conversations.forEach(function(conversation) {
         var newConversation = document.createElement('li');
-        newConversation.textContent = conversation.chat_name;
+        if(conversation.chat_name == "DATABASE") {
+            newConversation.textContent = "Information Agent";
+        } else {
+            newConversation.textContent = conversation.chat_name;
+        }
+        
         newConversation.setAttribute('onclick', `joinConversation('${conversation.chat_name}')`);
         newConversation.id = conversation.chat_name;
         conversationList.appendChild(newConversation);
