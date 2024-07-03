@@ -357,7 +357,7 @@ def get_user_conversations(user_id, world):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT chat_name FROM chats WHERE user = %s AND world_id=%s ORDER BY created_at"
+            sql = "SELECT chat_name, chat_id FROM chats WHERE user = %s AND world_id=%s ORDER BY created_at"
             cursor.execute(sql, (user_id,world))
             result = cursor.fetchall()
             return result
@@ -382,18 +382,19 @@ def get_or_create_conversation(conversation_id, user, initial_message="", world=
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT chat_name, messages FROM chats WHERE chat_name = %s AND user = %s AND world_id = %s;"
+            sql = "SELECT chat_id, chat_name, messages FROM chats WHERE chat_name = %s AND user = %s AND world_id = %s;"
             cursor.execute(sql,(conversation_id, user, world))
             result = cursor.fetchall()
             if not result:
-                sql = "INSERT INTO chats (chat_id, chat_name, user, messages, world_id) VALUES (UUID(), %s, %s, %s, %s)"
+                new_uuid = str(uuid.uuid4())
+                sql = "INSERT INTO chats (chat_id, chat_name, user, messages, world_id) VALUES (%s, %s, %s, %s, %s)"
                 if(initial_message!=""):
                     initial_message = {"sender": "assistant", "text": initial_message}
-                cursor.execute(sql, (conversation_id, user, json.dumps([initial_message]), world))
+                cursor.execute(sql, (new_uuid, conversation_id, user, json.dumps([initial_message]), world))
                 connection.commit()
-                return {'name': conversation_id, 'messages': []}
+                return {'name': conversation_id, 'chat_id':new_uuid, 'messages': []}
             else:
-                return {'name': conversation_id, 'messages': json.loads(result[0]["messages"])}
+                return {'name': conversation_id, 'chat_id': result[0]["chat_id"], 'messages': json.loads(result[0]["messages"])}
     finally:
         connection.close()
 

@@ -14,8 +14,8 @@ def emit_user_fact_count(user_id, world):
 def emit_conversation_created(name):
     emit('conversation_created', {'name': name})
 
-def emit_broadcast_message(conversation_id, message):
-    emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id)
+def emit_broadcast_message(conversation_id, message, user_id, world_id):
+    emit('broadcast_message', {'conversation_id': conversation_id, 'message': message}, room=conversation_id+"-"+user_id+"-"+world_id)
 
 def emit_conversation_history(conversation_id, user_id, world_id):
     conversation = get_or_create_conversation(conversation_id, user_id, world=world_id)

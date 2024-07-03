@@ -249,9 +249,9 @@ def handle_send_message(data):
     conversation = get_or_create_conversation(conversation_id, current_user.id, world=world_id)
     if conversation:
         conversation = conversation
-        emit_broadcast_message(conversation_id, message)
+        emit_broadcast_message(conversation_id, message, current_user.id, world_id)
         res = {'text': message_gpt(message['text'], conversation_id, user_id=current_user.id, disable_canon=(conversation_id == database_agent_name), world=world_id), 'sender': 'system'}
-        emit_broadcast_message(conversation_id, res)
+        emit_broadcast_message(conversation_id, res, current_user.id, world_id)
         emit_user_fact_count(current_user.id, world_id)
 
 @socketio.on('join_conversation')
@@ -260,14 +260,15 @@ def handle_join_conversation(data):
     if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
     conversation_id = data['conversation_id']
-    join_room(conversation_id)
+    join_room(conversation_id+"-"+current_user.id+"-"+world_id)
     emit_conversation_history(conversation_id, current_user.id, world_id)
 
 @socketio.on('leave_conversation')
 def handle_leave_conversation(data):
-    if not current_user.is_authenticated:
+    world_id = data["world_id"]
+    if not current_user.is_authenticated or not check_world_user_access(world_id):
         return False  # Or handle appropriately
-    leave_room(data['conversation_id'])
+    leave_room(data['conversation_id']+"-"+current_user.id+"-"+world_id)
 
 @socketio.on('delete_conversation')
 def handle_delete_conversation(data):
@@ -278,7 +279,7 @@ def handle_delete_conversation(data):
         print(world_id)
         print("NOT AUTHORIZED")
         return False  # Or handle appropriately
-    leave_room(data['conversation_id'])
+    leave_room(data['conversation_id']+"-"+current_user.id+"-"+world_id)
     delete_conversation(data['conversation_id'],current_user.id, world_id)
 
 @socketio.on('request_welcome_message')
