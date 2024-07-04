@@ -265,3 +265,11 @@ document.addEventListener('DOMContentLoaded', function() {
     displayWelcomeMessage("<h2>Welcome!</h2><br/>To get started make a character and get to talking!  <br/><br/>If you are looking for inspiration wait here and you will be given a list of the top things the interviewer wants to know!<br/>")
     socket.emit('request_welcome_message',{world_id:world});
 });
+
+
+const messageInput = document.getElementById('messageInput');
+    
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });

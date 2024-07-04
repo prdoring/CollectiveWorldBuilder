@@ -77,7 +77,7 @@ body {
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle inner shadow */
 }
 /* Input field styling */
-.message-input input[type="text"] {
+.message-input textarea {
     flex-grow: 1;
     margin-right: 10px;
     background-color: #444; /* Slightly lighter for contrast */
@@ -86,6 +86,8 @@ body {
     padding: 10px;
     border-radius: 5px; /* Adjusted for sleek look */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); /* Subtle shadow for depth */
+    overflow: hidden;
+    resize: none;
 }
 /* Send button styling */
 .btn.btn-primary {
